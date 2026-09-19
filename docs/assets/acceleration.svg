@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 430" width="1000" height="430" role="img" aria-label="Device plan: ChordKu benchmarks every model on CPU, NVIDIA GPU, Intel GPU and NPU and only uses a device that is faster and numerically faithful">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f1117"/><stop offset="0.6" stop-color="#171a24"/><stop offset="1" stop-color="#2a2114"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f2b84b"/><stop offset="1" stop-color="#ff8f4b"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#f2b84b" stop-opacity="0.22"/><stop offset="1" stop-color="#f2b84b" stop-opacity="0"/>
+    </radialGradient>
+    <style>
+      .t { font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+      .flow { stroke-dasharray: 8 10; animation: flow 1.4s linear infinite; }
+      @keyframes flow { to { stroke-dashoffset: -36; } }
+      
+      @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+    </style>
+  </defs>
+  <rect width="1000" height="430" rx="24" fill="url(#bg)"/>
+  <text class="t" x="36" y="52" font-size="24" font-weight="750" fill="#e9ebf2" text-anchor="start" >Every model, every processor: measured, then chosen</text>
+  <text class="t" x="36" y="76" font-size="13.5" font-weight="400" fill="#9aa0b4" text-anchor="start" >A device is used only if it is at least 1.25x faster AND gives the same result as the CPU. Calibration runs once per machine.</text>
+  <text class="t" x="262.0" y="104" font-size="12.5" font-weight="700" fill="#9aa0b4" text-anchor="middle" >CPU</text>
+  <text class="t" x="418.0" y="104" font-size="12.5" font-weight="700" fill="#9aa0b4" text-anchor="middle" >RTX 3050  CUDA</text>
+  <text class="t" x="574.0" y="104" font-size="12.5" font-weight="700" fill="#9aa0b4" text-anchor="middle" >RTX 3050  DirectML</text>
+  <text class="t" x="730.0" y="104" font-size="12.5" font-weight="700" fill="#9aa0b4" text-anchor="middle" >Intel Arc  DirectML</text>
+  <text class="t" x="886.0" y="104" font-size="12.5" font-weight="700" fill="#9aa0b4" text-anchor="middle" >Intel NPU</text>
+  <text class="t" x="36" y="156" font-size="16" font-weight="700" fill="#e9ebf2" text-anchor="start" >Beats</text>
+  <rect x="190" y="112" width="144" height="74" rx="12" fill="#1b1e27" fill-opacity="1" stroke="#2f3444" stroke-width="1"/>
+  <text class="t" x="262.0" y="146" font-size="16" font-weight="750" fill="#e9ebf2" text-anchor="middle" >3.95 s</text>
+  <text class="t" x="262.0" y="168" font-size="11.5" font-weight="650" fill="#9aa0b4" text-anchor="middle" >reference</text>
+  <rect x="346" y="112" width="144" height="74" rx="12" fill="#f2b84b" fill-opacity="0.16" stroke="#f2b84b" stroke-width="2"/>
+  <text class="t" x="418.0" y="146" font-size="16" font-weight="750" fill="#e9ebf2" text-anchor="middle" >1.09 s</text>
+  <text class="t" x="418.0" y="168" font-size="11.5" font-weight="650" fill="#f2b84b" text-anchor="middle" >chosen</text>
+  <rect x="502" y="112" width="144" height="74" rx="12" fill="#1b1e27" fill-opacity="1" stroke="#2f3444" stroke-width="1"/>
+  <text class="t" x="574.0" y="146" font-size="16" font-weight="750" fill="#e9ebf2" text-anchor="middle" >1.91 s</text>
+  <text class="t" x="574.0" y="168" font-size="11.5" font-weight="650" fill="#9aa0b4" text-anchor="middle" >faithful</text>
+  <rect x="658" y="112" width="144" height="74" rx="12" fill="#1b1e27" fill-opacity="1" stroke="#2f3444" stroke-width="1"/>
+  <text class="t" x="730.0" y="146" font-size="16" font-weight="750" fill="#e9ebf2" text-anchor="middle" >4.03 s</text>
+  <text class="t" x="730.0" y="168" font-size="11.5" font-weight="650" fill="#9aa0b4" text-anchor="middle" >faithful</text>
+  <rect x="814" y="112" width="144" height="74" rx="12" fill="#ef6b6b" fill-opacity="0.16" stroke="#ef6b6b" stroke-width="1"/>
+  <text class="t" x="886.0" y="146" font-size="14" font-weight="750" fill="#ef6b6b" text-anchor="middle" >no compile</text>
+  <text class="t" x="886.0" y="168" font-size="11.5" font-weight="650" fill="#ef6b6b" text-anchor="middle" >rejected</text>
+  <text class="t" x="36" y="240" font-size="16" font-weight="700" fill="#e9ebf2" text-anchor="start" >Chords</text>
+  <rect x="190" y="196" width="144" height="74" rx="12" fill="#f2b84b" fill-opacity="0.16" stroke="#f2b84b" stroke-width="2"/>
+  <text class="t" x="262.0" y="230" font-size="16" font-weight="750" fill="#e9ebf2" text-anchor="middle" >0.85 s</text>
+  <text class="t" x="262.0" y="252" font-size="11.5" font-weight="650" fill="#f2b84b" text-anchor="middle" >chosen</text>
+  <rect x="346" y="196" width="144" height="74" rx="12" fill="#1b1e27" fill-opacity="1" stroke="#2f3444" stroke-width="1"/>
+  <text class="t" x="418.0" y="230" font-size="16" font-weight="750" fill="#e9ebf2" text-anchor="middle" >0.64 s</text>
+  <text class="t" x="418.0" y="252" font-size="11.5" font-weight="650" fill="#9aa0b4" text-anchor="middle" >faithful</text>
+  <rect x="502" y="196" width="144" height="74" rx="12" fill="#1b1e27" fill-opacity="1" stroke="#2f3444" stroke-width="1"/>
+  <text class="t" x="574.0" y="230" font-size="16" font-weight="750" fill="#e9ebf2" text-anchor="middle" >0.77 s</text>
+  <text class="t" x="574.0" y="252" font-size="11.5" font-weight="650" fill="#9aa0b4" text-anchor="middle" >faithful</text>
+  <rect x="658" y="196" width="144" height="74" rx="12" fill="#ef6b6b" fill-opacity="0.16" stroke="#ef6b6b" stroke-width="1"/>
+  <text class="t" x="730.0" y="230" font-size="14" font-weight="750" fill="#ef6b6b" text-anchor="middle" >14 % drift</text>
+  <text class="t" x="730.0" y="252" font-size="11.5" font-weight="650" fill="#ef6b6b" text-anchor="middle" >rejected</text>
+  <rect x="814" y="196" width="144" height="74" rx="12" fill="#1b1e27" fill-opacity="1" stroke="#9aa0b4" stroke-width="1"/>
+  <text class="t" x="886.0" y="230" font-size="16" font-weight="750" fill="#e9ebf2" text-anchor="middle" >+60 ms gain</text>
+  <text class="t" x="886.0" y="252" font-size="11.5" font-weight="650" fill="#9aa0b4" text-anchor="middle" >not worth it</text>
+  <text class="t" x="36" y="324" font-size="16" font-weight="700" fill="#e9ebf2" text-anchor="start" >Stems / segment</text>
+  <rect x="190" y="280" width="144" height="74" rx="12" fill="#1b1e27" fill-opacity="1" stroke="#2f3444" stroke-width="1"/>
+  <text class="t" x="262.0" y="314" font-size="16" font-weight="750" fill="#e9ebf2" text-anchor="middle" >3.96 s</text>
+  <text class="t" x="262.0" y="336" font-size="11.5" font-weight="650" fill="#9aa0b4" text-anchor="middle" >reference</text>
+  <rect x="346" y="280" width="144" height="74" rx="12" fill="#f2b84b" fill-opacity="0.16" stroke="#f2b84b" stroke-width="2"/>
+  <text class="t" x="418.0" y="314" font-size="16" font-weight="750" fill="#e9ebf2" text-anchor="middle" >0.92 s</text>
+  <text class="t" x="418.0" y="336" font-size="11.5" font-weight="650" fill="#f2b84b" text-anchor="middle" >chosen</text>
+  <rect x="502" y="280" width="144" height="74" rx="12" fill="#ef6b6b" fill-opacity="0.16" stroke="#ef6b6b" stroke-width="1"/>
+  <text class="t" x="574.0" y="314" font-size="14" font-weight="750" fill="#ef6b6b" text-anchor="middle" >fails to load</text>
+  <text class="t" x="574.0" y="336" font-size="11.5" font-weight="650" fill="#ef6b6b" text-anchor="middle" >rejected</text>
+  <rect x="658" y="280" width="144" height="74" rx="12" fill="#ef6b6b" fill-opacity="0.16" stroke="#ef6b6b" stroke-width="1"/>
+  <text class="t" x="730.0" y="314" font-size="14" font-weight="750" fill="#ef6b6b" text-anchor="middle" >fails to load</text>
+  <text class="t" x="730.0" y="336" font-size="11.5" font-weight="650" fill="#ef6b6b" text-anchor="middle" >rejected</text>
+  <rect x="814" y="280" width="144" height="74" rx="12" fill="#ef6b6b" fill-opacity="0.16" stroke="#ef6b6b" stroke-width="1"/>
+  <text class="t" x="886.0" y="314" font-size="14" font-weight="750" fill="#ef6b6b" text-anchor="middle" >wrong output</text>
+  <text class="t" x="886.0" y="336" font-size="11.5" font-weight="650" fill="#ef6b6b" text-anchor="middle" >rejected</text>
+  <text class="t" x="36" y="396" font-size="12.5" font-weight="400" fill="#9aa0b4" text-anchor="start" >Two sessions sharing a 6 GB GPU can spill into system memory and run 10x slower than the CPU, so CUDA arenas are capped.</text>
+  <text class="t" x="36" y="414" font-size="12.5" font-weight="400" fill="#9aa0b4" text-anchor="start" >With the network that fast, inverse STFTs and Opus encoding run on their own threads: 47.6 s per song became 30.1 s.</text>
+</svg>

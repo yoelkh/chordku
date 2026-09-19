@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 620" width="1200" height="620" role="img" aria-label="ChordKu pipeline: sources are decoded once, a fast lane produces the chord chart in seconds with beats on the GPU and chords on the CPU, a slow lane separates stems on the GPU, and the browser plays everything in sync">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f1117"/><stop offset="0.6" stop-color="#171a24"/><stop offset="1" stop-color="#2a2114"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f2b84b"/><stop offset="1" stop-color="#ff8f4b"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#f2b84b" stop-opacity="0.22"/><stop offset="1" stop-color="#f2b84b" stop-opacity="0"/>
+    </radialGradient>
+    <style>
+      .t { font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+      .flow { stroke-dasharray: 8 10; animation: flow 1.4s linear infinite; }
+      @keyframes flow { to { stroke-dashoffset: -36; } }
+      
+      @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+    </style>
+  </defs>
+  <rect width="1200" height="620" rx="24" fill="url(#bg)"/>
+  <text class="t" x="40" y="56" font-size="26" font-weight="750" fill="#e9ebf2" text-anchor="start" >How a song becomes a chart</text>
+  <text class="t" x="40" y="82" font-size="15" font-weight="400" fill="#9aa0b4" text-anchor="start" >One Rust binary. No cloud, no Python at runtime. Every model runs where it was measured to be fastest and still correct.</text>
+  <rect x="40" y="120" width="230" height="78" rx="14" fill="#1b1e27" stroke="#2f3444" />
+  <text class="t" x="56" y="148" font-size="16.5" font-weight="700" fill="#e9ebf2" text-anchor="start" >Link</text>
+  <text class="t" x="56" y="170" font-size="13" font-weight="400" fill="#9aa0b4" text-anchor="start" >YouTube and 1000+ sites (yt-dlp)</text>
+  <path class="flow" d="M270 159 L316 255" stroke="#f2b84b" stroke-width="2.2" fill="none"/>
+  <circle cx="316" cy="255" r="4" fill="#f2b84b"/>
+  <rect x="40" y="216" width="230" height="78" rx="14" fill="#1b1e27" stroke="#2f3444" />
+  <text class="t" x="56" y="244" font-size="16.5" font-weight="700" fill="#e9ebf2" text-anchor="start" >File</text>
+  <text class="t" x="56" y="266" font-size="13" font-weight="400" fill="#9aa0b4" text-anchor="start" >MP3, FLAC, M4A, MP4, ...</text>
+  <path class="flow" d="M270 255 L316 255" stroke="#f2b84b" stroke-width="2.2" fill="none"/>
+  <circle cx="316" cy="255" r="4" fill="#f2b84b"/>
+  <rect x="40" y="312" width="230" height="78" rx="14" fill="#1b1e27" stroke="#2f3444" />
+  <text class="t" x="56" y="340" font-size="16.5" font-weight="700" fill="#e9ebf2" text-anchor="start" >Microphone</text>
+  <text class="t" x="56" y="362" font-size="13" font-weight="400" fill="#9aa0b4" text-anchor="start" >laptop, or phone over HTTPS</text>
+  <path class="flow" d="M270 351 L316 255" stroke="#f2b84b" stroke-width="2.2" fill="none"/>
+  <circle cx="316" cy="255" r="4" fill="#f2b84b"/>
+  <rect x="320" y="206" width="170" height="98" rx="14" fill="#1b1e27" stroke="#2f3444" />
+  <text class="t" x="336" y="234" font-size="16.5" font-weight="700" fill="#e9ebf2" text-anchor="start" >Decode</text>
+  <text class="t" x="336" y="256" font-size="13" font-weight="400" fill="#9aa0b4" text-anchor="start" >Symphonia + libopus</text>
+  <text class="t" x="336" y="275" font-size="13" font-weight="400" fill="#9aa0b4" text-anchor="start" >ffmpeg as last resort</text>
+  <text class="t" x="540" y="128" font-size="12.5" font-weight="700" fill="#f2b84b" text-anchor="start" letter-spacing="1.5">FAST LANE   about 4 seconds</text>
+  <rect x="528" y="138" width="636" height="212" rx="16" fill="#f2b84b" fill-opacity=".05" stroke="#f2b84b" stroke-opacity=".5" stroke-dasharray="4 6"/>
+  <path class="flow" d="M490 240 L544 240" stroke="#f2b84b" stroke-width="2.2" fill="none"/>
+  <circle cx="544" cy="240" r="4" fill="#f2b84b"/>
+  <rect x="548" y="158" width="180" height="78" rx="14" fill="#1b1e27" stroke="#2f3444" />
+  <text class="t" x="564" y="186" font-size="16.5" font-weight="700" fill="#e9ebf2" text-anchor="start" >Tuning</text>
+  <text class="t" x="564" y="208" font-size="13" font-weight="400" fill="#9aa0b4" text-anchor="start" >offset from A440,</text>
+  <text class="t" x="564" y="227" font-size="13" font-weight="400" fill="#9aa0b4" text-anchor="start" >folded into resampling</text>
+  <rect x="680.2" y="169" width="35.8" height="22" rx="11" fill="#6aa8ff" fill-opacity=".16" stroke="#6aa8ff"/>
+  <text class="t" x="698.1" y="184" font-size="11.5" font-weight="700" fill="#6aa8ff" text-anchor="middle" >CPU</text>
+  <rect x="548" y="252" width="180" height="78" rx="14" fill="#1b1e27" stroke="#2f3444" />
+  <text class="t" x="564" y="280" font-size="16.5" font-weight="700" fill="#e9ebf2" text-anchor="start" >Beats</text>
+  <text class="t" x="564" y="302" font-size="13" font-weight="400" fill="#9aa0b4" text-anchor="start" >Beat This! transformer,</text>
+  <text class="t" x="564" y="321" font-size="13" font-weight="400" fill="#9aa0b4" text-anchor="start" >downbeats included</text>
+  <rect x="680.2" y="263" width="35.8" height="22" rx="11" fill="#58c48a" fill-opacity=".16" stroke="#58c48a"/>
+  <text class="t" x="698.1" y="278" font-size="11.5" font-weight="700" fill="#58c48a" text-anchor="middle" >GPU</text>
+  <rect x="748" y="158" width="196" height="78" rx="14" fill="#1b1e27" stroke="#2f3444" />
+  <text class="t" x="764" y="186" font-size="16.5" font-weight="700" fill="#e9ebf2" text-anchor="start" >Chords</text>
+  <text class="t" x="764" y="208" font-size="13" font-weight="400" fill="#9aa0b4" text-anchor="start" >CQT + BTC, 170 classes,</text>
+  <text class="t" x="764" y="227" font-size="13" font-weight="400" fill="#9aa0b4" text-anchor="start" >overlapped 10 s windows</text>
+  <rect x="896.2" y="169" width="35.8" height="22" rx="11" fill="#6aa8ff" fill-opacity=".16" stroke="#6aa8ff"/>
+  <text class="t" x="914.1" y="184" font-size="11.5" font-weight="700" fill="#6aa8ff" text-anchor="middle" >CPU</text>
+  <rect x="748" y="252" width="196" height="78" rx="14" fill="#1b1e27" stroke="#2f3444" />
+  <text class="t" x="764" y="280" font-size="16.5" font-weight="700" fill="#e9ebf2" text-anchor="start" >Chart</text>
+  <text class="t" x="764" y="302" font-size="13" font-weight="400" fill="#9aa0b4" text-anchor="start" >sticky Viterbi, beat sync,</text>
+  <text class="t" x="764" y="321" font-size="13" font-weight="400" fill="#9aa0b4" text-anchor="start" >key, modulations, sections</text>
+  <rect x="896.2" y="263" width="35.8" height="22" rx="11" fill="#6aa8ff" fill-opacity=".16" stroke="#6aa8ff"/>
+  <text class="t" x="914.1" y="278" font-size="11.5" font-weight="700" fill="#6aa8ff" text-anchor="middle" >CPU</text>
+  <path class="flow" d="M728 197 L748 197" stroke="#f2b84b" stroke-width="2.2" fill="none"/>
+  <circle cx="748" cy="197" r="4" fill="#f2b84b"/>
+  <path class="flow" d="M728 291 L748 291" stroke="#f2b84b" stroke-width="2.2" fill="none"/>
+  <circle cx="748" cy="291" r="4" fill="#f2b84b"/>
+  <path class="flow" d="M846 236 L846 252" stroke="#f2b84b" stroke-width="2.2" fill="none"/>
+  <circle cx="846" cy="252" r="4" fill="#f2b84b"/>
+  <text class="t" x="540" y="392" font-size="12.5" font-weight="700" fill="#58c48a" text-anchor="start" letter-spacing="1.5">SLOW LANE   on request, about 30 seconds per song, yields to the fast lane</text>
+  <rect x="528" y="402" width="636" height="118" rx="16" fill="#58c48a" fill-opacity=".05" stroke="#58c48a" stroke-opacity=".5" stroke-dasharray="4 6"/>
+  <path class="flow" d="M405 304 L405 461" stroke="#58c48a" stroke-width="2.2" fill="none"/>
+  <circle cx="405" cy="461" r="4" fill="#58c48a"/>
+  <path class="flow" d="M405 461 L544 461" stroke="#58c48a" stroke-width="2.2" fill="none"/>
+  <circle cx="544" cy="461" r="4" fill="#58c48a"/>
+  <rect x="548" y="422" width="250" height="78" rx="14" fill="#1b1e27" stroke="#2f3444" />
+  <text class="t" x="564" y="450" font-size="16.5" font-weight="700" fill="#e9ebf2" text-anchor="start" >Stem separation</text>
+  <text class="t" x="564" y="472" font-size="13" font-weight="400" fill="#9aa0b4" text-anchor="start" >htdemucs, native STFT / iSTFT,</text>
+  <text class="t" x="564" y="491" font-size="13" font-weight="400" fill="#9aa0b4" text-anchor="start" >streaming overlap-add</text>
+  <rect x="750.2" y="433" width="35.8" height="22" rx="11" fill="#58c48a" fill-opacity=".16" stroke="#58c48a"/>
+  <text class="t" x="768.1" y="448" font-size="11.5" font-weight="700" fill="#58c48a" text-anchor="middle" >GPU</text>
+  <rect x="818" y="422" width="328" height="78" rx="14" fill="#1b1e27" stroke="#2f3444" />
+  <text class="t" x="834" y="450" font-size="16.5" font-weight="700" fill="#e9ebf2" text-anchor="start" >Opus encoders (own thread)</text>
+  <text class="t" x="834" y="472" font-size="13" font-weight="400" fill="#9aa0b4" text-anchor="start" >vocals, drums, bass, other</text>
+  <text class="t" x="834" y="491" font-size="13" font-weight="400" fill="#9aa0b4" text-anchor="start" >+ 2 light mono stems for phones</text>
+  <rect x="1098.2" y="433" width="35.8" height="22" rx="11" fill="#6aa8ff" fill-opacity=".16" stroke="#6aa8ff"/>
+  <text class="t" x="1116.1" y="448" font-size="11.5" font-weight="700" fill="#6aa8ff" text-anchor="middle" >CPU</text>
+  <path class="flow" d="M798 461 L818 461" stroke="#58c48a" stroke-width="2.2" fill="none"/>
+  <circle cx="818" cy="461" r="4" fill="#58c48a"/>
+  <rect x="964" y="158" width="182" height="172" rx="14" fill="#1b1e27" stroke="#f2b84b" />
+  <text class="t" x="980" y="186" font-size="16.5" font-weight="700" fill="#e9ebf2" text-anchor="start" >Browser</text>
+  <text class="t" x="980" y="208" font-size="13" font-weight="400" fill="#9aa0b4" text-anchor="start" >sample-locked stems,</text>
+  <text class="t" x="980" y="227" font-size="13" font-weight="400" fill="#9aa0b4" text-anchor="start" >tempo 50-125 %,</text>
+  <text class="t" x="980" y="246" font-size="13" font-weight="400" fill="#9aa0b4" text-anchor="start" >pitch follows transpose,</text>
+  <text class="t" x="980" y="265" font-size="13" font-weight="400" fill="#9aa0b4" text-anchor="start" >floating diagrams,</text>
+  <text class="t" x="980" y="284" font-size="13" font-weight="400" fill="#9aa0b4" text-anchor="start" >edits, setlists, export</text>
+  <path class="flow" d="M944 291 L964 291" stroke="#f2b84b" stroke-width="2.2" fill="none"/>
+  <circle cx="964" cy="291" r="4" fill="#f2b84b"/>
+  <path class="flow" d="M1055 422 L1055 330" stroke="#58c48a" stroke-width="2.2" fill="none"/>
+  <circle cx="1055" cy="330" r="4" fill="#58c48a"/>
+  <rect x="40" y="548" width="1124" height="48" rx="14" fill="#14161c" stroke="#2f3444" />
+  <text class="t" x="58" y="578" font-size="13.5" font-weight="650" fill="#e9ebf2" text-anchor="start" >SQLite library</text>
+  <text class="t" x="168" y="578" font-size="13.5" font-weight="400" fill="#9aa0b4" text-anchor="start" >analysis (immutable)  +  your edits (survive re-analysis)  +  view prefs (transpose, capo, notation)</text>
+  <text class="t" x="1146" y="578" font-size="13.5" font-weight="400" fill="#9aa0b4" text-anchor="end" >SSE progress, range requests, opt-in HTTPS LAN mode</text>
+</svg>

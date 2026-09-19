@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 470" width="1000" height="470" role="img" aria-label="Measured performance on a Core Ultra 5 125H laptop with an RTX 3050: chart visible 4.1 s after upload, stems in 30 s instead of 100 s, and chord accuracy of about 90 percent on rock and singer-songwriter recordings">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f1117"/><stop offset="0.6" stop-color="#171a24"/><stop offset="1" stop-color="#2a2114"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f2b84b"/><stop offset="1" stop-color="#ff8f4b"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#f2b84b" stop-opacity="0.22"/><stop offset="1" stop-color="#f2b84b" stop-opacity="0"/>
+    </radialGradient>
+    <style>
+      .t { font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+      .flow { stroke-dasharray: 8 10; animation: flow 1.4s linear infinite; }
+      @keyframes flow { to { stroke-dashoffset: -36; } }
+      
+      @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+    </style>
+  </defs>
+  <rect width="1000" height="470" rx="24" fill="url(#bg)"/>
+  <text class="t" x="36" y="52" font-size="25" font-weight="750" fill="#e9ebf2" text-anchor="start" >Measured, not estimated</text>
+  <text class="t" x="36" y="77" font-size="14" font-weight="400" fill="#9aa0b4" text-anchor="start" >Core Ultra 5 125H + RTX 3050 Laptop, 4 min 17 s song. Accuracy: WCSR on 91 min of GuitarSet.</text>
+  <text class="t" x="36" y="118" font-size="12" font-weight="700" fill="#f2b84b" text-anchor="start" letter-spacing="1.5">SPEED   seconds, lower is better</text>
+  <text class="t" x="36" y="154" font-size="14.5" font-weight="650" fill="#e9ebf2" text-anchor="start" >Beat tracking</text>
+  <rect x="36" y="164" width="380" height="14" rx="7" fill="#2f3444"/>
+  <text class="t" x="424.0" y="176" font-size="12" font-weight="400" fill="#9aa0b4" text-anchor="start" >3.95 s  CPU only</text>
+  <rect x="36" y="184" width="105" height="14" rx="7" fill="url(#accent)"/>
+  <text class="t" x="148.8607594936709" y="196" font-size="12" font-weight="650" fill="#f2b84b" text-anchor="start" >1.09 s  with the measured device plan</text>
+  <text class="t" x="36" y="246" font-size="14.5" font-weight="650" fill="#e9ebf2" text-anchor="start" >Chart visible after upload</text>
+  <rect x="36" y="256" width="380" height="14" rx="7" fill="#2f3444"/>
+  <text class="t" x="424.0" y="268" font-size="12" font-weight="400" fill="#9aa0b4" text-anchor="start" >7 s  CPU only</text>
+  <rect x="36" y="276" width="223" height="14" rx="7" fill="url(#accent)"/>
+  <text class="t" x="266.57142857142856" y="288" font-size="12" font-weight="650" fill="#f2b84b" text-anchor="start" >4.1 s  with the measured device plan</text>
+  <text class="t" x="36" y="338" font-size="14.5" font-weight="650" fill="#e9ebf2" text-anchor="start" >Stem separation</text>
+  <rect x="36" y="348" width="380" height="14" rx="7" fill="#2f3444"/>
+  <text class="t" x="424.0" y="360" font-size="12" font-weight="400" fill="#9aa0b4" text-anchor="start" >100 s  CPU only</text>
+  <rect x="36" y="368" width="114" height="14" rx="7" fill="url(#accent)"/>
+  <text class="t" x="158.0" y="380" font-size="12" font-weight="650" fill="#f2b84b" text-anchor="start" >30 s  with the measured device plan</text>
+  <text class="t" x="36" y="440" font-size="12.5" font-weight="400" fill="#9aa0b4" text-anchor="start" >Parity with PyTorch Demucs: 73-100 dB SNR. GPU beats identical to CPU.</text>
+  <text class="t" x="560" y="118" font-size="12" font-weight="700" fill="#58c48a" text-anchor="start" letter-spacing="1.5">ACCURACY   major / minor WCSR %, higher is better</text>
+  <text class="t" x="560" y="154" font-size="14" font-weight="600" fill="#e9ebf2" text-anchor="start" >Singer-songwriter</text>
+  <rect x="710" y="141" width="240" height="16" rx="8" fill="#2f3444"/>
+  <rect x="710" y="141" width="220" height="16" rx="8" fill="#58c48a" fill-opacity="0.91"/>
+  <text class="t" x="922.3199999999999" y="154" font-size="12" font-weight="750" fill="#0c1a12" text-anchor="end" >91.8</text>
+  <text class="t" x="560" y="188" font-size="14" font-weight="600" fill="#e9ebf2" text-anchor="start" >Rock</text>
+  <rect x="710" y="175" width="240" height="16" rx="8" fill="#2f3444"/>
+  <rect x="710" y="175" width="216" height="16" rx="8" fill="#58c48a" fill-opacity="0.90"/>
+  <text class="t" x="918.24" y="188" font-size="12" font-weight="750" fill="#0c1a12" text-anchor="end" >90.1</text>
+  <text class="t" x="560" y="222" font-size="14" font-weight="600" fill="#e9ebf2" text-anchor="start" >Bossa nova</text>
+  <rect x="710" y="209" width="240" height="16" rx="8" fill="#2f3444"/>
+  <rect x="710" y="209" width="194" height="16" rx="8" fill="#58c48a" fill-opacity="0.85"/>
+  <text class="t" x="895.92" y="222" font-size="12" font-weight="750" fill="#0c1a12" text-anchor="end" >80.8</text>
+  <text class="t" x="560" y="256" font-size="14" font-weight="600" fill="#e9ebf2" text-anchor="start" >Jazz</text>
+  <rect x="710" y="243" width="240" height="16" rx="8" fill="#2f3444"/>
+  <rect x="710" y="243" width="165" height="16" rx="8" fill="#58c48a" fill-opacity="0.79"/>
+  <text class="t" x="866.64" y="256" font-size="12" font-weight="750" fill="#0c1a12" text-anchor="end" >68.6</text>
+  <text class="t" x="560" y="290" font-size="14" font-weight="600" fill="#e9ebf2" text-anchor="start" >Funk</text>
+  <rect x="710" y="277" width="240" height="16" rx="8" fill="#2f3444"/>
+  <rect x="710" y="277" width="143" height="16" rx="8" fill="#58c48a" fill-opacity="0.75"/>
+  <text class="t" x="845.04" y="290" font-size="12" font-weight="750" fill="#0c1a12" text-anchor="end" >59.6</text>
+  <rect x="560" y="322" width="404" height="96" rx="14" fill="#14161c" stroke="#2f3444" />
+  <text class="t" x="576" y="348" font-size="13.5" font-weight="650" fill="#e9ebf2" text-anchor="start" >Tuning correction, controlled experiment</text>
+  <text class="t" x="576" y="372" font-size="13" font-weight="400" fill="#9aa0b4" text-anchor="start" >recording detuned +30 cents:   79.3 %  ->  87.6 %</text>
+  <text class="t" x="576" y="392" font-size="13" font-weight="400" fill="#9aa0b4" text-anchor="start" >in tune, for reference:            87.0 %</text>
+  <text class="t" x="576" y="410" font-size="12" font-weight="400" fill="#9aa0b4" text-anchor="start" ></text>
+  <text class="t" x="560" y="440" font-size="12.5" font-weight="400" fill="#9aa0b4" text-anchor="start" >Overall: root 82.9, maj/min 79.2, sevenths 67.6 (180 takes).</text>
+</svg>
