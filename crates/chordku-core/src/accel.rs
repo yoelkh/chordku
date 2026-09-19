@@ -24,6 +24,11 @@ const MIN_SPEEDUP: f64 = 1.25;
 const MIN_LABEL_AGREEMENT: f64 = 0.995;
 const MIN_BEAT_AGREEMENT: f64 = 0.99;
 const MIN_STEM_SNR_DB: f64 = 60.0;
+/// Half precision cannot match float32 to 60 dB. Measured on full songs it lands at 44-57 dB
+/// per stem, which is a median of 17 dB below the coding error of the 96 kbit/s Opus files
+/// the stems are stored as (docs/ACCELERATION.md). Below 40 dB something is wrong with the
+/// graph or the driver, and float32 stays in use.
+const MIN_STEM_SNR_HALF_DB: f64 = 40.0;
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Plan {
@@ -107,7 +112,9 @@ fn timed<T>(f: impl FnOnce() -> Result<T>) -> Result<(T, f64)> {
 fn choose(trials: &mut [Trial], cpu_run: f64, min_fidelity: f64) -> Device {
     let mut best = (Device::Cpu, cpu_run / MIN_SPEEDUP);
     for t in trials.iter_mut().filter(|t| t.available && t.device != Device::Cpu) {
-        if t.fidelity < min_fidelity {
+        let min_fidelity = if t.device == Device::CudaHalf { MIN_STEM_SNR_HALF_DB } else { min_fidelity };
+        // Written so that a NaN (overflowed output) is rejected too.
+        if !(t.fidelity >= min_fidelity) {
             t.note = format!("ditolak: hasil menyimpang dari CPU ({:.2})", t.fidelity);
         } else if t.run_s > cpu_run / MIN_SPEEDUP {
             t.note = "ditolak: tidak cukup lebih cepat dari CPU".into();
@@ -189,7 +196,10 @@ pub fn calibrate_stems(onnx: &Path, threads: usize, candidates: &[Device]) -> (D
 
     let mut trials = Vec::new();
     let (mut cpu_out, mut cpu_run): (Vec<f32>, f64) = (Vec::new(), f64::MAX);
-    for device in std::iter::once(Device::Cpu).chain(candidates.iter().copied()) {
+    // Wherever CUDA is a candidate, so is the half-precision copy of the graph on it.
+    // (`CHORDKU_NO_HALF=1` keeps the separator in float32.)
+    let half = (candidates.contains(&Device::Cuda) && std::env::var_os("CHORDKU_NO_HALF").is_none()).then_some(Device::CudaHalf);
+    for device in std::iter::once(Device::Cpu).chain(candidates.iter().copied()).chain(half) {
         let mut t = trial("stems", device);
         let result = (|| -> Result<()> {
             let (mut model, load_s) = timed(|| HtDemucs::load_on(onnx, device, threads))?;

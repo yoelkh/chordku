@@ -32,15 +32,15 @@ Core Ultra 5 125H (14 cores), NVIDIA RTX 3050 Laptop 6 GB, Intel Arc iGPU, Intel
 |---|---|---|---|---|---|
 | Beats (Beat This! small) | 3.95 s | **1.09 s**, identical beats | 1.91 s, identical | 4.03 s, identical | does not compile (OpenVINO, driver 2696) |
 | Chords (CQT + BTC) | **0.85 s** | 0.64 s, identical labels | 0.77 s | 2.82 s, **14 % of labels change** | BTC alone: 0.29 s vs 0.35 s on CPU, 12 s compile |
-| Stems (htdemucs), per 7.8 s segment | 3.96 s | **0.92 s**, 74 dB SNR vs CPU | fails to initialise | fails to initialise | 1.18 s, **wrong output**, 240 s compile |
+| Stems (htdemucs), per 7.8 s segment | 3.96 s | float32 0.75 s, 74 dB SNR vs CPU; **float16 0.49 s**, 55 dB | fails to initialise | fails to initialise | 1.18 s, **wrong output**, 240 s compile |
 
-Resulting plan on this machine: **beats on CUDA, chords on the CPU, stems on CUDA.**
+Resulting plan on this machine: **beats on CUDA, chords on the CPU, stems on CUDA in half precision.**
 
 | End to end | before | now |
 |---|---|---|
 | upload until the chart is visible | about 7 s | **4.1 s** |
 | upload until audio is ready too | 10.5 s | **7.8 s** |
-| stem separation of the same song | about 100 s | **30 s** |
+| stem separation of the same song | about 100 s | **12 s** |
 
 ## Why each decision
 
@@ -66,6 +66,29 @@ things were needed to get that speed inside the server:
   thread per stem and the encoders on their own thread behind a two-block channel: 47.6 s
   became 30.1 s. The CPU-only path gained too (RTF 0.38 to 0.30). Parity with PyTorch Demucs
   is unchanged (73.5-100 dB).
+
+**Half precision for the separator.** In float32 htdemucs peaks at 5.9 GB of video memory, the
+whole of a 6 GB laptop GPU. Alone in a process that just fits (17 s for a 4 min 19 s song);
+inside the server, next to the beat model and the desktop, it spills into shared system memory
+and the same job takes 39 s. A float16 copy of the graph peaks at 3.3 GB (4.0 GB for the whole
+server) and the network itself is 1.5x faster: **12 s** for the job.
+
+- The copy is made on the user's machine by `separate/half.rs` the first time it is needed
+  (`htdemucs_fwd.fp16.onnx`, 84 MB, about a second): the pretrained weights may not be
+  redistributed, so it cannot ship. Inputs and outputs stay float32. The converter refuses any
+  graph containing an operator it was not verified on, which leaves float32 in use.
+- It is a calibration candidate like any other device (`cuda_fp16`). Its fidelity gate is 40 dB
+  instead of 60 dB, because half precision cannot reach 60. Measured on four full songs it lands
+  at 50-57 dB on the vocals and 44-50 dB on the other stems, with every sample finite.
+- What the difference sounds like was checked against something already accepted: the stems are
+  stored as 96 kbit/s Opus. Over a song the float16 error is a median of 17 dB *below* the Opus
+  coding error of the same stem; it exceeds it in 5 % of two-second windows (quiet bass under a
+  loud mix), by at most 7 dB, at an absolute level of -58 dBFS.
+- If a segment ever overflows float16 (non-finite output), the separator reloads the float32
+  graph and repeats that segment. `CHORDKU_NO_HALF=1` keeps everything in float32.
+- Not adopted after measuring: keeping the normalisation layers in float32 (+1 dB fidelity for
+  a third of the speed gain), cuDNN heuristic search and workspace limits (no effect on time or
+  memory), lowering the process priority only on the CPU path (no effect).
 
 **The NPU is not used, and that is a measured result, not an omission.**
 
@@ -95,4 +118,5 @@ CUDA already wins, so it was not added.
 - NVIDIA's DLLs are looked up in `CHORDKU_CUDA`, else `<data>/cuda`, and put on the process DLL
   search path before the first session is created. They come from NVIDIA's official PyPI
   wheels, pinned by SHA-256 (`crates/chordku-server/src/cuda.rs`).
-- `CHORDKU_NO_ACCEL=1` skips calibration and keeps everything on the CPU.
+- `CHORDKU_NO_ACCEL=1` skips calibration and keeps everything on the CPU. `CHORDKU_NO_HALF=1`
+  keeps the separator in float32.

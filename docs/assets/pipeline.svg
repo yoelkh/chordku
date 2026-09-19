@@ -73,7 +73,7 @@
   <circle cx="748" cy="291" r="4" fill="#f2b84b"/>
   <path class="flow" d="M846 236 L846 252" stroke="#f2b84b" stroke-width="2.2" fill="none"/>
   <circle cx="846" cy="252" r="4" fill="#f2b84b"/>
-  <text class="t" x="540" y="392" font-size="12.5" font-weight="700" fill="#58c48a" text-anchor="start" letter-spacing="1.5">SLOW LANE   on request, about 30 seconds per song, yields to the fast lane</text>
+  <text class="t" x="540" y="392" font-size="12.5" font-weight="700" fill="#58c48a" text-anchor="start" letter-spacing="1.5">SLOW LANE   on request, about 12 seconds per song, yields to the fast lane</text>
   <rect x="528" y="402" width="636" height="118" rx="16" fill="#58c48a" fill-opacity=".05" stroke="#58c48a" stroke-opacity=".5" stroke-dasharray="4 6"/>
   <path class="flow" d="M405 304 L405 461" stroke="#58c48a" stroke-width="2.2" fill="none"/>
   <circle cx="405" cy="461" r="4" fill="#58c48a"/>

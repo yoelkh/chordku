@@ -61,6 +61,9 @@ pub fn run(mut args: Vec<String>, models: &Path, threads: usize, take_opt: fn(&m
         Some(list) => list.split(',').filter_map(Device::parse).collect(),
         None => Device::ALL.to_vec(),
     };
+    // Experiments: a different separator graph (for example half precision) on the accelerated
+    // devices, measured against the regular one on the CPU.
+    let stems_variant = take_opt(&mut args, "--stems-variant").map(std::path::PathBuf::from);
     let audio_path = args.first().context("missing <audio> (any song of a few minutes)")?;
     let wanted = |m: &str| only.as_ref().is_none_or(|o| o.iter().any(|x| x == m));
 
@@ -137,7 +140,11 @@ pub fn run(mut args: Vec<String>, models: &Path, threads: usize, take_opt: fn(&m
         let mut reference: Option<Vec<f32>> = None;
         for &device in &devices {
             let row = (|| -> Result<Row> {
-                let (mut model, load_s) = timed(|| HtDemucs::load_on(&models.join("htdemucs_fwd.onnx"), device, threads))?;
+                let graph = match &stems_variant {
+                    Some(v) if device != Device::Cpu => v.clone(),
+                    _ => models.join("htdemucs_fwd.onnx"),
+                };
+                let (mut model, load_s) = timed(|| HtDemucs::load_on(&graph, device, threads))?;
                 let short = [mix[0][..SEGMENT.min(mix[0].len())].to_vec(), mix[1][..SEGMENT.min(mix[1].len())].to_vec()];
                 model.separate(&short, &mut |_| Ok(ControlFlow::Continue(())))?; // warm-up
                 let mut vocals: Vec<f32> = Vec::new();

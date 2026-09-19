@@ -73,6 +73,22 @@ labels with the unshifted run (`tools/export/compare_lab.py`):
 See `MODELS.md`: CQT 99.3 % identical BTC labels against librosa, ONNX logits within 1.5e-5 of
 PyTorch, htdemucs 73.5-100 dB SNR against PyTorch Demucs.
 
+## A retrained BTC, measured and not adopted
+
+BTC-PL (ChordMini, MIT) is the same network retrained with pseudo-labels and continual
+learning; its authors report +1.2 maj/min and +3.1 sevenths over the original weights on their
+test set. It is a drop-in file (`tools/export/export_btc.py --weights btc_model_best.pth`), so
+it was run through the same 180 takes:
+
+| chart WCSR | root | maj/min | sevenths |
+|---|---|---|---|
+| BTC (in use) | 82.9 | **79.2** | **67.6** |
+| BTC-PL | **83.7** | 79.1 | 65.5 |
+
+Rock and singer-songwriter are unchanged (90.1 / 91.0 against 90.1 / 91.8 maj/min); the
+sevenths drop comes from bossa nova, funk and jazz (-3 to -5). On this material the original
+weights stay.
+
 ## What is not measured
 
 - **Full band mixes with ground truth.** The standard sets (Isophonics, Billboard, RWC, USPop) do

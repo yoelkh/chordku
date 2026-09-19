@@ -69,7 +69,7 @@ Diukur di laptop Core Ultra 5 125H dengan RTX 3050:
 |---|---|
 | Lagu 4 menit, dari unggah sampai chart tampil | **4,1 detik** (sekitar 7 detik bila hanya CPU) |
 | Video 10 menit, hanya CPU | sekitar 17 detik |
-| Pisah stem, GPU NVIDIA (CUDA) | sekitar **30 detik** untuk lagu 4 menit |
+| Pisah stem, GPU NVIDIA (CUDA, presisi setengah) | sekitar **12 detik** untuk lagu 4 menit |
 | Pisah stem, hanya CPU | 0,30 x durasi lagu, memori puncak 2,5 GB, berjalan di latar |
 
 Akurasi (weighted chord symbol recall) pada 91 menit rekaman gitar asli (GuitarSet, 180 rekaman
@@ -110,7 +110,7 @@ terverifikasi saat tautan pertama ditambahkan; untuk YouTube perlu Node.js 22+ a
 
 Variabel lingkungan: `CHORDKU_PORT` (7464), `CHORDKU_DATA` (bawaan `%LOCALAPPDATA%\ChordKu\data`),
 `CHORDKU_MODELS`, `CHORDKU_THREADS`, `CHORDKU_MAX_SECONDS` (1200), `CHORDKU_MAX_UPLOAD_MB` (300),
-`CHORDKU_MIN_FREE_MB` (1536), `CHORDKU_CUDA`, `CHORDKU_NO_ACCEL`.
+`CHORDKU_MIN_FREE_MB` (1536), `CHORDKU_CUDA`, `CHORDKU_NO_ACCEL`, `CHORDKU_NO_HALF`.
 
 ## Tips pemakaian
 

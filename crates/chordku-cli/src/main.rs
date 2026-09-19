@@ -19,9 +19,9 @@ chordku-cli <command> [options]
   analyze <audio> [--models DIR] [--threads N] [--json FILE]  full chart: key, tempo, bars, sections
   chords <audio> [--models DIR] [--threads N] [--lab FILE]   frame-wise chord labels (.lab)
   beats  <audio> [--models DIR] [--threads N]                 beat / downbeat times, tempo, meter
-  separate <audio> <out-dir> [--models DIR] [--threads N]     drums/bass/other/vocals WAVs (htdemucs)
+  separate <audio> <out-dir> [--models DIR] [--threads N] [--device cpu|cuda|cuda_fp16]   four stems as WAV (htdemucs)
   eval <dir> [--models DIR] [--limit N] [--json FILE]         WCSR against <name>.lab ground truth
-  bench <audio> [--devices cpu,gpu_high,gpu_low,npu] [--only chords,beats,stems] [--json FILE]
+  bench <audio> [--devices cpu,cuda,cuda_fp16,gpu_high,gpu_low,npu] [--only chords,beats,stems] [--json FILE]
                                                               speed and fidelity of every model on every device
   info                                                        ONNX Runtime build info
 ";
@@ -239,6 +239,11 @@ fn separate(mut args: Vec<String>) -> Result<()> {
     let models = models_dir(&mut args);
     let threads: usize = take_opt(&mut args, "--threads").map(|t| t.parse()).transpose()?.unwrap_or(0);
     let max_secs: Option<f64> = take_opt(&mut args, "--seconds").map(|t| t.parse()).transpose()?;
+    let device = match take_opt(&mut args, "--device") {
+        Some(d) => chordku_core::ortutil::Device::parse(&d).with_context(|| format!("unknown device {d}"))?,
+        None => chordku_core::ortutil::Device::Cpu,
+    };
+    let graph = take_opt(&mut args, "--graph").map(PathBuf::from);
     let audio_path = args.first().context("missing <audio>")?.clone();
     let out_dir = PathBuf::from(args.get(1).context("missing <out-dir>")?);
     std::fs::create_dir_all(&out_dir)?;
@@ -268,7 +273,7 @@ fn separate(mut args: Vec<String>) -> Result<()> {
     let secs = mix[0].len() as f64 / STEM_RATE as f64;
     let t_prep = t0.elapsed();
 
-    let mut model = HtDemucs::load(&models.join("htdemucs_fwd.onnx"), threads)?;
+    let mut model = HtDemucs::load_on(&graph.unwrap_or_else(|| models.join("htdemucs_fwd.onnx")), device, threads)?;
     let t_load = t0.elapsed() - t_prep;
 
     let spec = hound::WavSpec { channels: 2, sample_rate: STEM_RATE, bits_per_sample: 32, sample_format: hound::SampleFormat::Float };

@@ -67,7 +67,7 @@ Measured on a Core Ultra 5 125H laptop with an RTX 3050:
 |---|---|
 | 4 min song, upload to visible chart | **4.1 s** (about 7 s on the CPU alone) |
 | 10 min video, CPU only | about 17 s |
-| Stem separation, NVIDIA GPU (CUDA) | about **30 s** for a 4 min song |
+| Stem separation, NVIDIA GPU (CUDA, half precision) | about **12 s** for a 4 min song |
 | Stem separation, CPU only | 0.30 x real time, 2.5 GB peak memory, in the background |
 
 Weighted chord symbol recall on 91 minutes of real guitar recordings (GuitarSet, 180 comping
@@ -108,7 +108,7 @@ the first time you add a link; YouTube additionally needs Node.js 22+ or Deno on
 
 Environment variables: `CHORDKU_PORT` (7464), `CHORDKU_DATA` (default
 `%LOCALAPPDATA%\ChordKu\data`), `CHORDKU_MODELS`, `CHORDKU_THREADS`, `CHORDKU_MAX_SECONDS` (1200),
-`CHORDKU_MAX_UPLOAD_MB` (300), `CHORDKU_MIN_FREE_MB` (1536), `CHORDKU_CUDA`, `CHORDKU_NO_ACCEL`.
+`CHORDKU_MAX_UPLOAD_MB` (300), `CHORDKU_MIN_FREE_MB` (1536), `CHORDKU_CUDA`, `CHORDKU_NO_ACCEL`, `CHORDKU_NO_HALF`.
 
 ## Tips
 

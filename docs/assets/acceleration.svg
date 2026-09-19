@@ -62,7 +62,7 @@
   <text class="t" x="262.0" y="314" font-size="16" font-weight="750" fill="#e9ebf2" text-anchor="middle" >3.96 s</text>
   <text class="t" x="262.0" y="336" font-size="11.5" font-weight="650" fill="#9aa0b4" text-anchor="middle" >reference</text>
   <rect x="346" y="280" width="144" height="74" rx="12" fill="#f2b84b" fill-opacity="0.16" stroke="#f2b84b" stroke-width="2"/>
-  <text class="t" x="418.0" y="314" font-size="16" font-weight="750" fill="#e9ebf2" text-anchor="middle" >0.92 s</text>
+  <text class="t" x="418.0" y="314" font-size="16" font-weight="750" fill="#e9ebf2" text-anchor="middle" >0.49 s fp16</text>
   <text class="t" x="418.0" y="336" font-size="11.5" font-weight="650" fill="#f2b84b" text-anchor="middle" >chosen</text>
   <rect x="502" y="280" width="144" height="74" rx="12" fill="#ef6b6b" fill-opacity="0.16" stroke="#ef6b6b" stroke-width="1"/>
   <text class="t" x="574.0" y="314" font-size="14" font-weight="750" fill="#ef6b6b" text-anchor="middle" >fails to load</text>
@@ -74,5 +74,5 @@
   <text class="t" x="886.0" y="314" font-size="14" font-weight="750" fill="#ef6b6b" text-anchor="middle" >wrong output</text>
   <text class="t" x="886.0" y="336" font-size="11.5" font-weight="650" fill="#ef6b6b" text-anchor="middle" >rejected</text>
   <text class="t" x="36" y="396" font-size="12.5" font-weight="400" fill="#9aa0b4" text-anchor="start" >Two sessions sharing a 6 GB GPU can spill into system memory and run 10x slower than the CPU, so CUDA arenas are capped.</text>
-  <text class="t" x="36" y="414" font-size="12.5" font-weight="400" fill="#9aa0b4" text-anchor="start" >With the network that fast, inverse STFTs and Opus encoding run on their own threads: 47.6 s per song became 30.1 s.</text>
+  <text class="t" x="36" y="414" font-size="12.5" font-weight="400" fill="#9aa0b4" text-anchor="start" >In float32 the separator fills all 6 GB; a float16 copy made on the device needs 3.3 GB and takes 12 s per song instead of 39 s.</text>
 </svg>

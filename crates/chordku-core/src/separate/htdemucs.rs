@@ -37,6 +37,9 @@ pub struct HtDemucs {
     /// One transform per stem, so the eight inverse STFTs of a segment run four at a time.
     /// On a GPU the network takes half a second per segment; serial DSP would double that.
     stem_stfts: Vec<Stft>,
+    /// Set while the half-precision graph is in use: the float32 graph to fall back to if a
+    /// segment ever overflows float16.
+    fallback: Option<(std::path::PathBuf, usize)>,
 }
 
 impl HtDemucs {
@@ -45,10 +48,16 @@ impl HtDemucs {
     }
 
     pub fn load_on(onnx: &Path, device: Device, threads: usize) -> Result<Self> {
+        // Half precision is a different graph file, derived from the float32 one on first use.
+        let (graph, fallback) = match device {
+            Device::CudaHalf => (super::half::ensure_half(onnx)?, Some((onnx.to_path_buf(), threads))),
+            _ => (onnx.to_path_buf(), None),
+        };
         Ok(Self {
-            session: session(onnx, device, threads, true)?,
+            session: session(&graph, device, threads, true)?,
             stft: Stft::new(),
             stem_stfts: (0..N_STEMS).map(|_| Stft::new()).collect(),
+            fallback,
         })
     }
 
@@ -75,10 +84,25 @@ impl HtDemucs {
         let inv_t = 1.0 / (1e-5 + std_t);
         xt.iter_mut().for_each(|v| *v = (*v - mean_t) * inv_t);
 
-        let outputs = self.session.run(ort::inputs![
+        let spare = self.fallback.is_some().then(|| (x.clone(), xt.clone()));
+        let mut outputs = self.session.run(ort::inputs![
             "x" => Tensor::from_array(([1usize, 2 * CHANNELS, BINS, FRAMES], x))?,
             "xt" => Tensor::from_array(([1usize, CHANNELS, SEGMENT], xt))?,
         ])?;
+        if let Some((x, xt)) = spare {
+            let finite = |name: &str| -> Result<bool> { Ok(outputs[name].try_extract_tensor::<f32>()?.1.iter().all(|v| v.is_finite())) };
+            if !(finite("x_out")? && finite("xt_out")?) {
+                // Float16 overflowed on this material: finish the song in float32.
+                drop(outputs);
+                let (onnx, threads) = self.fallback.take().expect("checked above");
+                tracing::warn!("half precision overflowed; continuing in float32");
+                self.session = session(&onnx, Device::Cuda, threads, true)?;
+                outputs = self.session.run(ort::inputs![
+                    "x" => Tensor::from_array(([1usize, 2 * CHANNELS, BINS, FRAMES], x))?,
+                    "xt" => Tensor::from_array(([1usize, CHANNELS, SEGMENT], xt))?,
+                ])?;
+            }
+        }
         let (_, x_out) = outputs["x_out"].try_extract_tensor::<f32>()?;
         let (_, xt_out) = outputs["xt_out"].try_extract_tensor::<f32>()?;
         ensure!(x_out.len() == N_STEMS * 2 * CHANNELS * plane, "unexpected x_out size {}", x_out.len());

@@ -8,6 +8,7 @@ use std::ops::ControlFlow;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
+pub mod half;
 pub mod htdemucs;
 pub mod remix;
 pub mod stft;

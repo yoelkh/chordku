@@ -15,3 +15,6 @@ __pycache__/
 # web build output is embedded at compile time; keep the placeholder out of git noise
 /target-cuda
 kernel.errors.txt
+
+# Local backups of earlier builds
+/releases/

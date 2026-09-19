@@ -10,6 +10,7 @@
   const DEVICE: Record<string, string> = {
     cpu: "CPU",
     cuda: "GPU NVIDIA (CUDA)",
+    cuda_fp16: "GPU NVIDIA (CUDA, presisi setengah)",
     gpu_high: "GPU NVIDIA (DirectML)",
     gpu_low: "GPU Intel Arc (DirectML)",
     npu: "NPU Intel AI Boost",
@@ -62,7 +63,9 @@
   </div>
   <p class="muted small">
     ChordKu mengukur tiap model di tiap prosesor laptop ini, lalu hanya memakai perangkat yang terbukti lebih cepat dan hasilnya sama
-    dengan CPU. Perangkat yang cepat tetapi hasilnya menyimpang ditolak.
+    dengan CPU. Perangkat yang cepat tetapi hasilnya menyimpang ditolak. Untuk pemisah stem di GPU NVIDIA juga dicoba salinan model
+    berpresisi setengah (dibuat otomatis di laptop ini): memori GPU separuhnya dan lebih cepat, dipakai bila selisihnya dari CPU di
+    bawah ambang dengar (minimal 40 dB).
   </p>
 
   {#if cal}

@@ -25,6 +25,9 @@ rustfft = "6.4"
 hound = "3.5.1"
 opus = "0.4.0"
 ogg = "0.9.2"
+onnx-protobuf = "0.2.3"
+half = "2"
+protobuf = "=3.4.0"
 
 # DirectML ships inside the prebuilt ONNX Runtime for Windows: GPU and NPU without CUDA.
 [target.'cfg(windows)'.dependencies]

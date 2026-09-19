@@ -42,9 +42,16 @@ def load(weights: str) -> BtcLogits:
     model_cfg = yaml.safe_load((BTC_DIR / "run_config.yaml").read_text())["model"]
     model_cfg["num_chords"] = N_CHORDS
     model = BTC_model(config=model_cfg)
-    ckpt = torch.load(weights, map_location="cpu", weights_only=False)
-    model.load_state_dict(ckpt["model"])
-    mean, std = np.asarray(ckpt["mean"]).item(), np.asarray(ckpt["std"]).item()
+    if Path(weights).suffix == ".pth":
+        # ChordMini layout (BTC-PL): same network, retrained with pseudo-labels. Tensors only,
+        # so the checkpoint is never unpickled as code.
+        ckpt = torch.load(weights, map_location="cpu", weights_only=True)
+        model.load_state_dict(ckpt["model_state_dict"])
+        mean, std = float(ckpt["normalization"]["mean"]), float(ckpt["normalization"]["std"])
+    else:
+        ckpt = torch.load(weights, map_location="cpu", weights_only=False)
+        model.load_state_dict(ckpt["model"])
+        mean, std = np.asarray(ckpt["mean"]).item(), np.asarray(ckpt["std"]).item()
     print(f"checkpoint mean={mean:.6f} std={std:.6f}")
     return BtcLogits(model, mean, std).eval()
 
@@ -53,6 +60,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--weights", default=str(BTC_DIR / "test" / "btc_model_large_voca.pt"))
     ap.add_argument("--out", default=str(MODELS_OUT / "btc.onnx"))
+    ap.add_argument("--source", default="https://github.com/jayg996/BTC-ISMIR19 (MIT)")
     args = ap.parse_args()
 
     wrapped = load(args.weights)
@@ -87,7 +95,7 @@ def main():
         "mean": float(wrapped.mean), "std": float(wrapped.std),
         "n_classes": N_CHORDS, "timestep": TIMESTEP,
         "weights": Path(args.weights).name, "sha256": sha,
-        "source": "https://github.com/jayg996/BTC-ISMIR19 (MIT)",
+        "source": args.source,
     }
     Path(args.out).with_suffix(".json").write_text(json.dumps(meta, indent=2))
 

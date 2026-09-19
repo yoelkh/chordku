@@ -297,10 +297,9 @@ impl Worker {
 
     /// Builds and installed runtimes the stored plan is valid for.
     fn signature(&self) -> String {
-        // v2: the separator is measured together with the other models (it used to be measured
-        // lazily, which left the settings page claiming "CPU" for a model nobody had timed).
+        // v3: the separator has a half-precision candidate on CUDA.
         format!(
-            "v2|cuda_build={}|cuda_libs={}|stems_model={}",
+            "v3|cuda_build={}|cuda_libs={}|stems_model={}",
             cfg!(feature = "cuda"),
             crate::cuda::status(&self.cfg).installed,
             models::group_dir(&self.cfg, "stems").is_some()
@@ -479,15 +478,27 @@ impl Worker {
         let onnx = model_dir.join("htdemucs_fwd.onnx");
         let device = self.stems_device(&onnx);
         let mut actual = device;
-        let mut model = HtDemucs::load_on(&onnx, device, self.cfg.threads).or_else(|e| {
-            tracing::warn!("pemisah stem gagal dimuat di {} ({e:#}); memakai CPU", device.name());
-            actual = Device::Cpu;
-            HtDemucs::load(&onnx, self.cfg.threads)
-        })?;
+        // A driver update or a busy GPU must never stop the job: half precision falls back to
+        // float32 on the GPU, and that to the CPU.
+        let mut model = HtDemucs::load_on(&onnx, device, self.cfg.threads)
+            .or_else(|e| {
+                if device != Device::CudaHalf {
+                    return Err(e);
+                }
+                tracing::warn!("pemisah stem presisi setengah gagal dimuat ({e:#}); memakai float32");
+                actual = Device::Cuda;
+                HtDemucs::load_on(&onnx, Device::Cuda, self.cfg.threads)
+            })
+            .or_else(|e| {
+                tracing::warn!("pemisah stem gagal dimuat di {} ({e:#}); memakai CPU", actual.name());
+                actual = Device::Cpu;
+                HtDemucs::load(&onnx, self.cfg.threads)
+            })?;
         // The stage carries the device so the progress banner can say where it runs.
         let stage_name = format!("segments:{}", actual.name());
 
         let _priority = platform::BelowNormalPriority::new();
+        let started = std::time::Instant::now();
         // The six Opus encoders run on their own thread: on a GPU the network needs half a
         // second per segment and must not wait for the previous block to be encoded. The
         // channel holds two blocks at most, so memory stays bounded.
@@ -522,6 +533,7 @@ impl Worker {
             Ok((finished?, outputs))
         })?;
         drop(model); // release the weights and activations right away
+        tracing::info!(song_id, device = actual.name(), secs = started.elapsed().as_secs_f64(), finished, "separated");
         if !finished {
             outputs.discard();
             return Ok(false);
@@ -593,11 +605,9 @@ impl StemOutputs {
         })
     }
 
+    /// Encodes one block into all six files, one thread per file. In sequence the six streams
+    /// cost about 0.16 s per block, more than half of what a GPU needs for the block itself.
     fn write(&mut self, block: &[[Vec<f32>; 2]]) -> Result<()> {
-        for (stem, writer) in &mut self.stems {
-            let pair = &block[*stem as usize];
-            writer.write(&[&pair[0], &pair[1]])?;
-        }
         let n = block[0][0].len();
         let [vocals, backing] = &mut self.scratch;
         vocals.clear();
@@ -607,8 +617,18 @@ impl StemOutputs {
             vocals.push(mono(Stem::Vocals));
             backing.push(mono(Stem::Drums) + mono(Stem::Bass) + mono(Stem::Other));
         }
-        self.vocals_mono.write(&[vocals.as_slice()])?;
-        self.backing_mono.write(&[backing.as_slice()])
+        let (vocals, backing) = (vocals.as_slice(), backing.as_slice());
+        let (vocals_mono, backing_mono) = (&mut self.vocals_mono, &mut self.backing_mono);
+        std::thread::scope(|scope| {
+            let mut jobs = Vec::with_capacity(6);
+            for (stem, writer) in &mut self.stems {
+                let pair = &block[*stem as usize];
+                jobs.push(scope.spawn(move || writer.write(&[&pair[0], &pair[1]])));
+            }
+            jobs.push(scope.spawn(move || vocals_mono.write(&[vocals])));
+            jobs.push(scope.spawn(move || backing_mono.write(&[backing])));
+            jobs.into_iter().try_for_each(|j| j.join().unwrap_or_else(|_| Err(anyhow!("encoder thread panicked"))))
+        })
     }
 
     fn names() -> impl Iterator<Item = &'static str> {

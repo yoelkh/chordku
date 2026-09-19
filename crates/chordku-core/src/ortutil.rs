@@ -29,6 +29,10 @@ pub enum Device {
     /// NVIDIA GPU through CUDA + cuDNN (needs the `cuda` build feature and NVIDIA's runtime
     /// libraries on the DLL search path). Covers graphs DirectML cannot run, like htdemucs.
     Cuda,
+    /// The same, running the half-precision copy of a graph (the stem separator only): half
+    /// the video memory and faster, accepted only if calibration finds it faithful.
+    #[serde(rename = "cuda_fp16")]
+    CudaHalf,
 }
 
 impl Device {
@@ -38,6 +42,7 @@ impl Device {
         match self {
             Device::Cpu => "cpu",
             Device::Cuda => "cuda",
+            Device::CudaHalf => "cuda_fp16",
             Device::GpuHigh => "gpu_high",
             Device::GpuLow => "gpu_low",
             Device::Npu => "npu",
@@ -45,7 +50,7 @@ impl Device {
     }
 
     pub fn parse(text: &str) -> Option<Device> {
-        Device::ALL.into_iter().find(|d| d.name() == text)
+        Device::ALL.into_iter().chain([Device::CudaHalf]).find(|d| d.name() == text)
     }
 }
 
@@ -89,7 +94,7 @@ pub fn session(model: &Path, device: Device, threads: usize, low_memory: bool) -
                     .map_err(|e| anyhow!("{e}"))?;
             }
         }
-        Device::Cuda => {
+        Device::Cuda | Device::CudaHalf => {
             #[cfg(feature = "cuda")]
             {
                 // Several sessions share one 6 GB laptop GPU. The default arena grows in powers

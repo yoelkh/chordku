@@ -14,6 +14,7 @@ const STAGES: Record<string, string> = {
 export const DEVICE_LABELS: Record<string, string> = {
   cpu: "CPU",
   cuda: "GPU NVIDIA (CUDA)",
+  cuda_fp16: "GPU NVIDIA (CUDA, presisi setengah)",
   gpu_high: "GPU NVIDIA (DirectML)",
   gpu_low: "GPU Intel Arc (DirectML)",
   npu: "NPU Intel AI Boost",
