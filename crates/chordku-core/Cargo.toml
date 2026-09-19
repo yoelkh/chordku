@@ -1,0 +1,31 @@
+[package]
+name = "chordku-core"
+description = "ChordKu analysis core: decode, CQT + BTC chord inference, beats, key, separation DSP"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[features]
+# NVIDIA CUDA execution provider. Switches ONNX Runtime from the static build to the dynamic
+# CUDA 13 build (onnxruntime.dll + provider DLLs next to the exe).
+cuda = ["ort/cuda"]
+
+[dependencies]
+anyhow.workspace = true
+thiserror.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tracing.workspace = true
+ndarray.workspace = true
+ort.workspace = true
+symphonia = { version = "0.6.1", features = ["aac", "isomp4", "mp3", "alac"] }
+rubato = "5.0.0"
+realfft = "3.5.0"
+rustfft = "6.4"
+hound = "3.5.1"
+opus = "0.4.0"
+ogg = "0.9.2"
+
+# DirectML ships inside the prebuilt ONNX Runtime for Windows: GPU and NPU without CUDA.
+[target.'cfg(windows)'.dependencies]
+ort = { workspace = true, features = ["directml"] }

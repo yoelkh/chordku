@@ -1,0 +1,43 @@
+{
+  "bpo": 24,
+  "hop": 2048,
+  "librosa": "0.11.0",
+  "n_bins": 144,
+  "progression_bar_secs": 2.5,
+  "progression_classes": [
+    1,
+    126,
+    71,
+    107
+  ],
+  "sr": 22050,
+  "synth_22k.f32": {
+    "dtype": "f32le",
+    "shape": [
+      441000
+    ]
+  },
+  "synth_logcqt_dir.f32": {
+    "dtype": "f32le",
+    "shape": [
+      108,
+      144
+    ]
+  },
+  "synth_logcqt_lib.f32": {
+    "dtype": "f32le",
+    "shape": [
+      108,
+      144
+    ]
+  },
+  "synth_logits.f32": {
+    "dtype": "f32le",
+    "shape": [
+      108,
+      170
+    ]
+  },
+  "timestep": 108,
+  "torch": "2.14.0+cpu"
+}

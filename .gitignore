@@ -1,0 +1,17 @@
+/target
+/web/node_modules
+/web/dist
+/models
+/tools/export/.venv
+/tools/export/_vendor
+*.onnx
+*.onnx.data
+*.pt
+*.th
+__pycache__/
+.env
+/.cargo/config.toml
+
+# web build output is embedded at compile time; keep the placeholder out of git noise
+/target-cuda
+kernel.errors.txt

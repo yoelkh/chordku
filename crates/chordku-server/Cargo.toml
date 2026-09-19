@@ -1,0 +1,47 @@
+[package]
+name = "chordku-server"
+description = "ChordKu local web server: library, jobs, media and the embedded web UI"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "chordku"
+path = "src/main.rs"
+
+[features]
+# CUDA is on by default: without NVIDIA's runtime libraries the provider simply fails to load
+# and the app keeps using DirectML and the CPU.
+default = ["cuda"]
+cuda = ["chordku-core/cuda"]
+
+[dependencies]
+chordku-core = { path = "../chordku-core" }
+anyhow.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tracing.workspace = true
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "process", "fs", "io-util", "sync", "time", "signal", "net"] }
+tokio-stream = { version = "0.1", features = ["sync"] }
+tokio-util = { version = "0.7", features = ["io"] }
+futures-util = "0.3"
+axum = { version = "0.8", features = ["multipart", "macros"] }
+tower = { version = "0.5", features = ["util"] }
+tower-http = { version = "0.6", features = ["fs", "set-header", "trace"] }
+rust-embed = { version = "8", features = ["interpolate-folder-path"] }
+mime_guess = "2"
+rusqlite = { version = "0.40", features = ["bundled"] }
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "stream", "json"] }
+blake3 = "1"
+sha2 = "0.10"
+ulid = "1"
+directories = "6"
+url = "2"
+axum-server = { version = "0.8", features = ["tls-rustls-no-provider"] }
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12", "logging"] }
+rcgen = "0.14"
+time = "0.3"
+qrcode = { version = "0.14", default-features = false, features = ["svg"] }
+rand = "0.9"
+zip = { version = "2", default-features = false, features = ["deflate"] }

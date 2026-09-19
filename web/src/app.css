@@ -1,0 +1,211 @@
+:root {
+  color-scheme: dark;
+  --bg: #14161c;
+  --bg-2: #1b1e27;
+  --bg-3: #242835;
+  --line: #2f3444;
+  --text: #e9ebf2;
+  --muted: #9aa0b4;
+  --accent: #f2b84b;
+  --accent-ink: #1a1405;
+  --good: #58c48a;
+  --bad: #ef6b6b;
+  --info: #6aa8ff;
+  --radius: 10px;
+  --font: system-ui, "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color-scheme: light;
+    --bg: #f6f6f3;
+    --bg-2: #ffffff;
+    --bg-3: #ecece7;
+    --line: #d9d9d2;
+    --text: #1d1f26;
+    --muted: #666b7a;
+    --accent: #c9860c;
+    --accent-ink: #ffffff;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: 1px solid var(--line);
+  background: var(--bg-3);
+  border-radius: 8px;
+  padding: 0.45em 0.85em;
+  transition: background 0.12s, border-color 0.12s, transform 0.05s;
+}
+button:hover:not(:disabled) {
+  border-color: var(--muted);
+}
+button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 650;
+}
+button.ghost {
+  background: transparent;
+  border-color: transparent;
+}
+button.ghost:hover:not(:disabled) {
+  background: var(--bg-3);
+}
+button.on {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+button.danger:hover:not(:disabled) {
+  border-color: var(--bad);
+  color: var(--bad);
+}
+button.icon {
+  padding: 0.35em 0.55em;
+  min-width: 2.2em;
+}
+
+input[type="text"],
+input[type="url"],
+input[type="search"],
+select {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.5em 0.7em;
+  min-width: 0;
+}
+input:focus-visible,
+button:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+input[type="range"] {
+  accent-color: var(--accent);
+}
+
+.card {
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.wrap {
+  flex-wrap: wrap;
+}
+.grow {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.muted {
+  color: var(--muted);
+}
+.small {
+  font-size: 0.86em;
+}
+.mono {
+  font-family: var(--mono);
+}
+.ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  padding: 0.12em 0.6em;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  font-size: 0.82em;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.bar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--bg-3);
+  overflow: hidden;
+}
+.bar > i {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.25s;
+}
+
+/* Printing: the chart only, black on white, sections kept together (this is the PDF export). */
+@media print {
+  :root {
+    --bg: #fff;
+    --bg-2: #fff;
+    --bg-3: #fff;
+    --line: #999;
+    --text: #000;
+    --muted: #333;
+    --accent: #000;
+  }
+  @page {
+    size: A4;
+    margin: 14mm;
+  }
+  .no-print {
+    display: none !important;
+  }
+  body {
+    font-size: 11pt;
+  }
+}
