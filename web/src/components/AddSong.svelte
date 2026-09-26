@@ -3,7 +3,7 @@
   import { fail, toast } from "../lib/toast.svelte";
   import Recorder from "./Recorder.svelte";
 
-  let { onadded }: { onadded: (songId: string, existing: boolean) => void } = $props();
+  let { onadded, hint = "" }: { onadded: (songId: string, existing: boolean) => void; hint?: string } = $props();
 
   let mode = $state<"url" | "file" | "mic">("url");
   let url = $state("");
@@ -71,6 +71,7 @@
 </script>
 
 <section class="card add">
+  {#if hint}<p class="hint setlist">{hint}</p>{/if}
   <div class="tabs" role="tablist">
     <button role="tab" aria-selected={mode === "url"} class:on={mode === "url"} onclick={() => (mode = "url")}>Tautan</button>
     <button role="tab" aria-selected={mode === "file"} class:on={mode === "file"} onclick={() => (mode = "file")}>File</button>
@@ -120,6 +121,10 @@
   }
   .tabs button {
     padding: 0.3em 0.9em;
+  }
+  .hint.setlist {
+    color: var(--accent);
+    font-weight: 600;
   }
   .hint {
     margin: 0;

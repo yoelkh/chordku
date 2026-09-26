@@ -14,6 +14,7 @@
   import { DEFAULT_PREFS, keySummary, labelAt, normalizePrefs, type ViewPrefs } from "../lib/chart/view";
   import { clock, jobLabel } from "../lib/i18n/id";
   import { classToChord, keyName, noteName, suggestCapo, transposeChord, wrapTranspose, type Key, type Mode } from "../lib/theory";
+  import { askConfirm, askText } from "../lib/dialog.svelte";
   import { fail, toast } from "../lib/toast.svelte";
 
   let { id }: { id: string } = $props();
@@ -272,8 +273,8 @@
     }
   }
 
-  function renameSection(t_ms: number, current: string) {
-    const label = prompt("Nama bagian (misalnya Intro, Bait, Reff):", current)?.trim();
+  async function renameSection(t_ms: number, current: string) {
+    const label = await askText("Nama bagian", current, { placeholder: "misalnya Intro, Bait, Reff" });
     if (label) void addEdit("section_rename", t_ms, t_ms, { label });
   }
 
@@ -298,11 +299,13 @@
 
   async function editMeta() {
     if (!detail) return;
-    const title = prompt("Judul lagu:", detail.song.title);
+    const title = await askText("Judul lagu", detail.song.title);
     if (title === null) return;
-    const artist = prompt("Artis:", detail.song.artist) ?? detail.song.artist;
-    const tags = prompt("Label, pisahkan dengan koma (boleh kosong):", detail.song.tags.join(", "));
-    await run(() => api.patchSong(id, { title, artist, tags: tags === null ? undefined : tags.split(",").map((t) => t.trim()).filter(Boolean) }));
+    const artist = await askText("Artis", detail.song.artist, { ok: "Lanjut", allowEmpty: true });
+    if (artist === null) return;
+    const tags = await askText("Label (pisahkan dengan koma, boleh kosong)", detail.song.tags.join(", "), { ok: "Simpan", allowEmpty: true, placeholder: "misalnya pujian, lambat" });
+    if (tags === null) return;
+    await run(() => api.patchSong(id, { title, artist, tags: tags.split(",").map((t) => t.trim()).filter(Boolean) }));
   }
 
   let setlists = $state<Setlist[]>([]);
@@ -315,7 +318,7 @@
     try {
       let target = Number(value);
       if (value === "new") {
-        const name = prompt("Nama setlist baru:")?.trim();
+        const name = await askText("Nama setlist baru", "", { placeholder: "misalnya Ibadah Minggu" });
         if (!name) return;
         target = (await api.createSetlist(name)).id;
       }
@@ -327,7 +330,7 @@
   }
 
   async function remove() {
-    if (!confirm("Hapus lagu ini beserta chord, koreksi, dan stem-nya?")) return;
+    if (!(await askConfirm("Hapus lagu ini?", { text: "Chord, koreksi, dan stem-nya ikut terhapus.", ok: "Hapus", danger: true }))) return;
     try {
       await api.deleteSong(id);
       location.hash = "#/";
@@ -449,7 +452,7 @@
         <button class:on={editing} onclick={() => (editing = !editing)} aria-pressed={editing}>{editing ? "Selesai koreksi" : "Koreksi chord"}</button>
         {#if detail.edits.length}<button class="ghost small" onclick={undoLast} title="Batalkan koreksi terakhir">Urungkan</button>{/if}
         <div class="menu-wrap">
-          <button class:on={menu} onclick={() => (menu = !menu)} aria-haspopup="menu" aria-expanded={menu}>Lainnya</button>
+          <button class:on={menu} onclick={() => ((menu = !menu), menu && void loadSetlists())} aria-haspopup="menu" aria-expanded={menu}>Lainnya</button>
           {#if menu}
             <div class="card pop right" role="menu">
               <div class="muted small">Ekspor</div>
@@ -474,7 +477,7 @@
               <div class="muted small">Lagu</div>
               <button class="option" onclick={editMeta}>Ubah judul, artis, label</button>
               <label class="option row">Setlist
-                <select value="" onfocus={loadSetlists} onchange={(e) => addToSetlist(e.currentTarget.value)}>
+                <select value="" onchange={(e) => addToSetlist(e.currentTarget.value)}>
                   <option value="">Tambahkan ke...</option>
                   {#each setlists as l (l.id)}<option value={l.id}>{l.name}</option>{/each}
                   <option value="new">Setlist baru...</option>
@@ -484,7 +487,7 @@
                 <button class="option" onclick={() => run(() => api.deleteStems(id), "Stem dihapus.")}>Hapus stem (hemat ruang)</button>
               {/if}
               {#if detail.edits.length}
-                <button class="option" onclick={() => confirm("Buang semua koreksi pada lagu ini?") && run(() => api.clearEdits(id))}>Buang semua koreksi ({detail.edits.length})</button>
+                <button class="option" onclick={async () => (await askConfirm("Buang semua koreksi pada lagu ini?", { ok: "Buang", danger: true })) && run(() => api.clearEdits(id))}>Buang semua koreksi ({detail.edits.length})</button>
               {/if}
               <button class="option" onclick={() => run(() => api.reanalyze(id), "Analisis ulang dimulai.")}>Analisis ulang</button>
               <button class="option danger" onclick={remove}>Hapus lagu</button>

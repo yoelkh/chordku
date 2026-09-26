@@ -3,6 +3,7 @@
   import Settings from "./routes/Settings.svelte";
   import SongView from "./routes/Song.svelte";
   import Pair from "./routes/Pair.svelte";
+  import Dialog from "./components/Dialog.svelte";
   import { api } from "./lib/api";
   import { dismiss, toasts } from "./lib/toast.svelte";
 
@@ -65,6 +66,8 @@
     <Library />
   {/if}
 </main>
+
+<Dialog />
 
 <div class="toasts no-print" aria-live="polite">
   {#each toasts as t (t.id)}
