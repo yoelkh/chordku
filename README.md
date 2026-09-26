@@ -36,6 +36,8 @@ no Python at runtime. The UI is in Indonesian.
 - **Floating chord diagrams.** A draggable cheat-sheet that stays visible while the chart
   scrolls: guitar, ukulele, piano or all three, for the current and the upcoming chords.
 - **Stem separation** (optional). Vocals, drums, bass, other. Mute the singer, solo the bass.
+- **Drum tab.** Once the stems exist, kick / snare / hi-hat hits are read from the drum stem and
+  shown as a 16th-note grid under every bar, following the song (also in shared pages).
 - **Fix what the machine got wrong.** Tap a chord, pick one of the recogniser's alternatives or
   any other chord. Corrections survive a re-analysis.
 - **Library.** Search, tags, favourites, setlists; export to ChordPro, plain text or PDF.
@@ -158,6 +160,7 @@ chordku-cli chords   song.mp3 [--lab out.lab]      frame-level chord labels
 chordku-cli beats    song.mp3                      beats and downbeats
 chordku-cli separate song.mp3 out_dir              four stems as WAV
 chordku-cli eval     dir_with_audio_and_lab        WCSR against ground truth
+chordku-cli drums    drums.opus [--json out.json]   kick / snare / hi-hat hits from a drum stem
 chordku-cli bench    song.mp3                      speed and fidelity per model and device
 ```
 

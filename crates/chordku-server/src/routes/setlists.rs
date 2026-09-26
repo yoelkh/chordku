@@ -125,6 +125,7 @@ fn share_data(st: &AppState, id: i64, with_audio: bool) -> ApiResult<Value> {
             "thumbnail": song.thumbnail,
             "analysis": analysis,
             "edits": st.db.edits(&song.id)?,
+            "drums": st.db.drums(&song.id)?.and_then(|j| serde_json::from_str::<Value>(&j).ok()),
             "prefs": st.db.prefs(&song.id)?,
         }));
     }

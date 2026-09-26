@@ -110,6 +110,14 @@ const MIGRATIONS: &[&str] = &[
         INSERT INTO songs_fts(rowid, title, artist) VALUES (new.rowid, new.title, new.artist);
     END;
     "#,
+    // 2: drum transcription (kick / snare / hi-hat hits) from the separated drum stem
+    r#"
+    CREATE TABLE drum_tabs (
+        song_id    TEXT PRIMARY KEY REFERENCES songs(id) ON DELETE CASCADE,
+        json       TEXT NOT NULL,
+        created_at INTEGER NOT NULL
+    );
+    "#,
 ];
 
 #[derive(Clone, Debug, Serialize)]
@@ -538,6 +546,36 @@ impl Db {
                 |r| r.get(0),
             )
             .optional()?)
+        })
+    }
+
+    // ---- drum tabs ---------------------------------------------------------------------
+
+    pub fn drums(&self, song_id: &str) -> Result<Option<String>> {
+        self.with(|c| Ok(c.query_row("SELECT json FROM drum_tabs WHERE song_id = ?1", [song_id], |r| r.get(0)).optional()?))
+    }
+
+    pub fn set_drums(&self, song_id: &str, json: &str) -> Result<()> {
+        self.with(|c| {
+            c.execute(
+                "INSERT INTO drum_tabs (song_id, json, created_at) VALUES (?1, ?2, ?3)
+                 ON CONFLICT(song_id) DO UPDATE SET json = excluded.json, created_at = excluded.created_at",
+                params![song_id, json, now()],
+            )?;
+            Ok(())
+        })
+    }
+
+    /// Songs whose drum stem exists but has not been transcribed (a stem made before this
+    /// feature existed).
+    pub fn songs_missing_drums(&self) -> Result<Vec<String>> {
+        self.with(|c| {
+            let mut stmt = c.prepare(
+                "SELECT DISTINCT s.song_id FROM stems s LEFT JOIN drum_tabs d ON d.song_id = s.song_id
+                 WHERE s.name = 'drums' AND d.song_id IS NULL",
+            )?;
+            let rows = stmt.query_map([], |r| r.get::<_, String>(0))?;
+            Ok(rows.collect::<rusqlite::Result<Vec<_>>>()?)
         })
     }
 

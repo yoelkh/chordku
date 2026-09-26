@@ -102,3 +102,24 @@ weights stay.
   its benefit cannot be verified here. The rule stays: ship it only if it gains at least one point.
 - **Beat tracking accuracy** beyond the synthetic test; Beat This! small reports beat F1 of about
   88 % on GTZAN in its paper.
+
+## Drum tab
+
+`chordku-core/src/drums.rs` reads kick, snare and hi-hat hits from the separated drum stem with
+band-wise spectral flux (four bands, per-band peak picking, rules for which drum a rise
+belongs to). Scored with `tools/eval/eval_drums.py` on `tools/eval/make_drum_set.py`: seven
+pop / worship grooves rendered from the FluidR3 GM SoundFont at 72-140 BPM with velocity
+variation, 801 hit slots, +-35 ms tolerance:
+
+| drum | precision | recall | F1 |
+|---|---|---|---|
+| kick | 0.91 | 0.97 | 0.94 |
+| snare | 0.95 | 1.00 | 0.97 |
+| hat | 0.97 | 0.83 | 0.90 |
+
+Toms read as kicks and crashes / rides as hi-hats, which is why the app calls the tab an
+estimate. Missed hi-hats are mostly the ones under a snare; the client completes a bar's hat
+pattern when most of its eighths (or sixteenths) were heard, and draws those dimmer. On real
+stems (two library songs) the hit rates are 0.9-1.3 kicks and 1.0-1.2 snares per beat and the
+inter-onset intervals sit on 16th multiples, which is consistent with the grooves; there is
+no ground truth for them.

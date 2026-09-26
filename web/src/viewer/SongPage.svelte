@@ -194,6 +194,13 @@
   let floating = $state(stored("chordku.floating.on", "1") === "1");
   let floatMode = $state<FloatMode | "">(stored<FloatMode | "">("chordku.floating.mode", ""));
   let follow = $state(stored("chordku.viewer.follow", "1") === "1");
+  let showDrums = $state(stored<string>("chordku.drums.on", "0") === "1");
+  const setDrums = (on: boolean) => {
+    showDrums = on;
+    try {
+      localStorage.setItem("chordku.drums.on", on ? "1" : "0");
+    } catch {}
+  };
   const setFloating = (on: boolean) => {
     floating = on;
     try {
@@ -253,6 +260,9 @@
 </div>
 
 <ViewControls bind:prefs {capoOptions} {floating} {follow} showPitchFollow={mode === "audio"} onfloating={setFloating} onfollow={setFollow}>
+  {#if s.drums}
+    <button class:on={showDrums} onclick={() => setDrums(!showDrums)} aria-pressed={showDrums} title="Kick, snare, dan hi-hat per bar">Tab drum</button>
+  {/if}
   {#if videoId && mode === "youtube"}
     <button class:on={showVideo} onclick={() => (showVideo = !showVideo)} aria-pressed={showVideo}>Video</button>
   {/if}
@@ -302,6 +312,10 @@
   </div>
 </div>
 
+{#if showDrums && s.drums}
+  <p class="muted small legend no-print">Tab drum per bar, 16 langkah: <span class="sw hat"></span> hi-hat (redup = diperkirakan) · <span class="sw snare"></span> snare · <span class="sw kick"></span> kick.</p>
+{/if}
+
 <ChartGrid
   {chart}
   {prefs}
@@ -309,6 +323,7 @@
   editing={false}
   {follow}
   {loop}
+  drums={showDrums ? s.drums : null}
   onseek={(ms) => source?.seek(ms / 1000)}
   onedit={() => {}}
   onloop={(r) => source?.setLoop(r)}
@@ -400,6 +415,25 @@
   }
   .note {
     margin: 0.4rem 0;
+  }
+  .legend {
+    margin: 0.5rem 0 0;
+  }
+  .sw {
+    display: inline-block;
+    width: 0.8em;
+    height: 0.55em;
+    border-radius: 3px;
+    vertical-align: middle;
+  }
+  .sw.hat {
+    background: var(--muted);
+  }
+  .sw.snare {
+    background: var(--good);
+  }
+  .sw.kick {
+    background: var(--accent);
   }
   .strip {
     display: flex;

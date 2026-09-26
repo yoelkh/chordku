@@ -1,5 +1,6 @@
 // Typed client for the ChordKu server, plus the single SSE subscription.
 
+import type { DrumEvents } from "./chart/drums";
 import type { Analysis, Edit } from "./chart/model";
 import type { Key } from "./theory";
 
@@ -44,6 +45,8 @@ export interface SongDetail {
   edits: Edit[];
   prefs: Record<string, unknown>;
   stems: StemFile[];
+  /** Kick / snare / hi-hat hits from the drum stem, once stems exist. */
+  drums: DrumEvents | null;
   jobs: Job[];
 }
 

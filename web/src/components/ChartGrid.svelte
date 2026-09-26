@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { drumBars, stepAt, type DrumEvents } from "../lib/chart/drums";
   import { buildBars, groupBySection, lines } from "../lib/chart/layout";
   import type { Chart } from "../lib/chart/model";
   import { labelAt, type ViewPrefs } from "../lib/chart/view";
@@ -20,6 +21,7 @@
     editing = false,
     follow = true,
     loop = null,
+    drums = null,
     onseek,
     onedit,
     onloop,
@@ -31,6 +33,8 @@
     editing?: boolean;
     follow?: boolean;
     loop?: { a: number; b: number } | null;
+    /** Drum hits to show as a tab under the chords; null hides the lanes. */
+    drums?: DrumEvents | null;
     onseek: (ms: number) => void;
     onedit: (target: CellTarget) => void;
     onloop: (range: { a: number; b: number } | null) => void;
@@ -58,6 +62,10 @@
     }
     return { bar: -1, beat: -1 };
   });
+
+  const tab = $derived(drums ? drumBars(bars, drums) : null);
+  const activeStep = $derived(tab && active.bar >= 0 ? stepAt(bars[active.bar], positionMs) : -1);
+  const LANES = [["hat", "HH"], ["snare", "SD"], ["kick", "BD"]] as const;
 
   // Keep the playing line in view.
   let root: HTMLElement;
@@ -119,6 +127,24 @@
                     {#if beat.segment >= 0}{labels[beat.segment]}{:else}<span class="dot">·</span>{/if}
                   </button>
                 {/each}
+                {#if tab}
+                  {@const d = tab[bar.index]}
+                  <div class="drums" style="--steps:{d.steps}" aria-label="Tab drum bar {bar.index + 1}">
+                    {#each LANES as [lane, name]}
+                      {#each d[lane] as v, s}
+                        <span
+                          class="step {lane}"
+                          class:hit={v > 0}
+                          class:soft={v > 0 && v < 60}
+                          class:inferred={lane === "hat" && d.hatInferred[s]}
+                          class:now={bar.index === active.bar && s === activeStep}
+                          class:beat={s % 4 === 0}
+                          title={v > 0 ? `${name} ${v}` : ""}
+                        ></span>
+                      {/each}
+                    {/each}
+                  </div>
+                {/if}
               </div>
             {/each}
           </div>
@@ -202,6 +228,46 @@
     color: var(--line);
     font-weight: 400;
   }
+  .drums {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(var(--steps), minmax(0, 1fr));
+    grid-auto-rows: 0.62rem;
+    gap: 1px 0;
+    padding: 0.1rem 0.15rem 0.25rem;
+    border-top: 1px dashed var(--line);
+  }
+  .step {
+    position: relative;
+    border-left: 1px solid transparent;
+  }
+  .step.beat {
+    border-left-color: var(--line);
+  }
+  .step.hit::after {
+    content: "";
+    position: absolute;
+    inset: 1px 15%;
+    border-radius: 3px;
+  }
+  .step.hat.hit::after {
+    background: var(--muted);
+  }
+  .step.snare.hit::after {
+    background: var(--good);
+  }
+  .step.kick.hit::after {
+    background: var(--accent);
+  }
+  .step.soft::after {
+    opacity: 0.5;
+  }
+  .step.inferred::after {
+    opacity: 0.3;
+  }
+  .step.now {
+    background: color-mix(in srgb, var(--accent) 22%, transparent);
+  }
   .editing .beat:hover {
     outline: 1px dashed var(--accent);
     outline-offset: -2px;
@@ -240,6 +306,14 @@
     .beat {
       color: #000 !important;
       font-size: 12pt;
+    }
+    .step.hit::after {
+      background: #000 !important;
+      opacity: 1;
+    }
+    .step.soft::after,
+    .step.inferred::after {
+      opacity: 0.45;
     }
   }
 </style>

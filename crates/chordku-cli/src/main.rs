@@ -21,6 +21,7 @@ chordku-cli <command> [options]
   beats  <audio> [--models DIR] [--threads N]                 beat / downbeat times, tempo, meter
   separate <audio> <out-dir> [--models DIR] [--threads N] [--device cpu|cuda|cuda_fp16]   four stems as WAV (htdemucs)
   eval <dir> [--models DIR] [--limit N] [--json FILE]         WCSR against <name>.lab ground truth
+  drums <drum-stem> [--json FILE] [--bpm N]                   kick / snare / hi-hat hits from a drum stem
   bench <audio> [--devices cpu,cuda,cuda_fp16,gpu_high,gpu_low,npu] [--only chords,beats,stems] [--json FILE]
                                                               speed and fidelity of every model on every device
   info                                                        ONNX Runtime build info
@@ -42,6 +43,7 @@ fn main() -> Result<()> {
         "chords" => chords(args),
         "beats" => beats(args),
         "separate" => separate(args),
+        "drums" => drums(args),
         "eval" => {
             let mut args = args;
             let models = models_dir(&mut args);
@@ -337,4 +339,55 @@ fn peak_rss_mb() -> u64 {
         }
     }
     0
+}
+
+fn drums(mut args: Vec<String>) -> Result<()> {
+    let json = take_opt(&mut args, "--json");
+    let bpm: Option<f64> = take_opt(&mut args, "--bpm").map(|t| t.parse()).transpose()?;
+    let audio_path = args.first().context("missing <drum-stem>")?;
+    let t0 = Instant::now();
+    let audio = decode::decode_file(Path::new(audio_path))?;
+    let mono = audio.to_mono();
+    let y = if audio.sample_rate == chordku_core::drums::RATE {
+        mono
+    } else {
+        resample::resample_mono(&mono, audio.sample_rate, chordku_core::drums::RATE, 0.0)?
+    };
+    let t_prep = t0.elapsed();
+    let events = chordku_core::drums::transcribe(&y);
+    let t_run = t0.elapsed() - t_prep;
+    if let Some(p) = &json {
+        std::fs::write(p, serde_json::to_vec_pretty(&events)?).with_context(|| format!("write {p}"))?;
+    }
+    let count = |f: fn(&chordku_core::drums::DrumOnset) -> u8| events.onsets.iter().filter(|o| f(o) >= 25).count();
+    let secs = audio.duration_secs();
+    println!(
+        "{secs:.1}s audio | {} hits: kick {} snare {} hi-hat {} | prep {:.2}s | transcribe {:.2}s",
+        events.onsets.len(),
+        count(|o| o.kick),
+        count(|o| o.snare),
+        count(|o| o.hat),
+        t_prep.as_secs_f64(),
+        t_run.as_secs_f64()
+    );
+    if let Some(bpm) = bpm {
+        // Where in the beat the hits fall (16 slots per beat): a pop groove shows kicks near
+        // slot 0 of beats 1 and 3 and snares on 2 and 4.
+        let beat_ms = 60_000.0 / bpm;
+        let mut hist = [[0usize; 4]; 3];
+        for o in &events.onsets {
+            let pos = (o.t_ms as f64 / beat_ms).fract();
+            let slot = ((pos * 4.0).round() as usize) % 4;
+            if o.kick >= 25 { hist[0][slot] += 1 }
+            if o.snare >= 25 { hist[1][slot] += 1 }
+            if o.hat >= 25 { hist[2][slot] += 1 }
+        }
+        for (name, h) in ["kick", "snare", "hi-hat"].iter().zip(hist) {
+            println!("{name:7} by 16th within a beat: {h:?}");
+        }
+    }
+    for o in events.onsets.iter().take(24) {
+        println!("{:7.2}s  kick {:3}  snare {:3}  hat {:3}", o.t_ms as f64 / 1000.0, o.kick, o.snare, o.hat);
+    }
+    Ok(())
 }

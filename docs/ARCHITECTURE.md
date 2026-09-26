@@ -84,3 +84,11 @@ embeds a setlist into the template at `GET /api/setlists/{id}/share.html` (`rout
 as a `<script type="application/json">` block and serves it as a download; `share.json` is the
 same data for development. Readers' prefs live in `localStorage`, keyed by setlist and song.
 `tools/publish-setlist.ps1` pushes such a file to a GitHub Pages repository.
+
+## Drum tab
+
+After a separation (and once at start-up for stems made earlier) the worker decodes
+`drums.opus`, runs `drums::transcribe` (about 0.1 s per song) and stores the hit list in
+`drum_tabs`. Hits carry times and strengths only; `web/src/lib/chart/drums.ts` quantises them
+onto the chart's bars as 16th steps, so downbeat and tempo corrections re-quantise the tab
+without new audio work. Shared pages embed the same list.

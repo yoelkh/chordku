@@ -38,6 +38,8 @@ tanpa Python saat dijalankan. Antarmukanya berbahasa Indonesia.
   digulir: gitar, ukulele, piano, atau ketiganya, untuk chord sekarang dan berikutnya.
 - **Pisah vokal dan instrumen** (opsional). Vokal, drum, bass, lainnya. Bisukan penyanyi,
   solo-kan bass.
+- **Tab drum.** Setelah stem ada, pukulan kick / snare / hi-hat dibaca dari stem drum dan
+  ditampilkan sebagai grid not 1/16 di bawah tiap bar, mengikuti lagu (juga di halaman bagikan).
 - **Koreksi hasil mesin.** Ketuk chord, pilih salah satu alternatif dari pengenal atau chord
   lain. Koreksi tetap ada walau lagu dianalisis ulang.
 - **Pustaka.** Cari, label, favorit, setlist; ekspor ke ChordPro, teks, atau PDF.
@@ -161,6 +163,7 @@ chordku-cli chords   lagu.mp3 [--lab out.lab]      label chord per frame
 chordku-cli beats    lagu.mp3                      ketukan dan downbeat
 chordku-cli separate lagu.mp3 folder_keluaran      empat stem WAV
 chordku-cli eval     folder_audio_dan_lab          WCSR terhadap anotasi
+chordku-cli drums    drums.opus [--json out.json]   pukulan kick / snare / hi-hat dari stem drum
 chordku-cli bench    lagu.mp3                      kecepatan dan ketepatan per model dan perangkat
 ```
 

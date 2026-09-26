@@ -53,6 +53,8 @@ pub enum Event {
 enum Work {
     Analyze { job_id: String, song_id: String },
     Separate { job_id: String, song_id: String },
+    /// Drum transcription from an existing stem: quick, no job row, fast lane.
+    Drums { song_id: String },
 }
 
 #[derive(Default)]
@@ -117,6 +119,10 @@ impl Jobs {
             } else {
                 db.update_job(&job.id, "failed", "", 0.0, Some("Terputus saat mengunduh. Tambahkan lagi lagunya."))?;
             }
+        }
+        // Stems made before drum transcription existed get their tab on this start.
+        for song_id in db.songs_missing_drums().unwrap_or_default() {
+            shared.queues.lock().expect("queue mutex").fast.push_back(Work::Drums { song_id });
         }
         let worker = Worker { cfg, db, events, shared, analyzer: None };
         std::thread::Builder::new().name("inference".into()).spawn(move || worker.run()).context("spawn inference thread")?;
@@ -196,6 +202,7 @@ impl Work {
     fn job_id(&self) -> &str {
         match self {
             Work::Analyze { job_id, .. } | Work::Separate { job_id, .. } => job_id,
+            Work::Drums { .. } => "",
         }
     }
 }
@@ -249,10 +256,17 @@ impl Worker {
     }
 
     fn execute(&mut self, work: Work) {
+        if let Work::Drums { song_id } = &work {
+            if let Err(e) = self.transcribe_drums(song_id) {
+                tracing::warn!(song_id, "tab drum gagal: {e:#}");
+            }
+            return;
+        }
         let job_id = work.job_id().to_owned();
         let result = match &work {
             Work::Analyze { song_id, .. } => self.analyze(&job_id, song_id),
             Work::Separate { song_id, .. } => self.separate(&job_id, song_id),
+            Work::Drums { .. } => unreachable!("handled above"),
         };
         match result {
             Ok(true) => report(&self.db, &self.events, &job_id, "succeeded", "", 1.0, None),
@@ -545,7 +559,32 @@ impl Worker {
         stems.extend(outputs.finish()?);
         self.db.replace_stems(song_id, &stems)?;
         let _ = self.events.send(Event::Song { id: song_id.to_owned() });
+        if let Err(e) = self.transcribe_drums(song_id) {
+            tracing::warn!(song_id, "tab drum gagal: {e:#}");
+        }
         Ok(true)
+    }
+
+    /// Kick / snare / hi-hat hits from the separated drum stem (about a second per song).
+    /// The hits are placed on the bar grid by the client, so edits to the grid never need
+    /// this to run again.
+    fn transcribe_drums(&self, song_id: &str) -> Result<()> {
+        let path = self.cfg.song_dir(song_id).join("drums.opus");
+        if !path.is_file() {
+            return Ok(());
+        }
+        let audio = decode::decode_file(&path).context("baca stem drum")?;
+        let mono = audio.to_mono();
+        let y = if audio.sample_rate == chordku_core::drums::RATE {
+            mono
+        } else {
+            resample::resample_mono(&mono, audio.sample_rate, chordku_core::drums::RATE, 0.0)?
+        };
+        let events = chordku_core::drums::transcribe(&y);
+        self.db.set_drums(song_id, &serde_json::to_string(&events)?)?;
+        tracing::info!(song_id, hits = events.onsets.len(), "tab drum siap");
+        let _ = self.events.send(Event::Song { id: song_id.to_owned() });
+        Ok(())
     }
 }
 

@@ -8,6 +8,7 @@ pub mod chart;
 pub mod chords;
 pub mod cqt;
 pub mod decode;
+pub mod drums;
 pub mod eval;
 pub mod key;
 pub mod opus_enc;

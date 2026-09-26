@@ -1,4 +1,5 @@
 // What the server embeds into viewer.html, and how the page reads it.
+import type { DrumEvents } from "../lib/chart/drums";
 import type { Analysis, Edit } from "../lib/chart/model";
 
 export interface ViewerSong {
@@ -10,6 +11,7 @@ export interface ViewerSong {
   thumbnail: string | null;
   analysis: Analysis;
   edits: Edit[];
+  drums?: DrumEvents | null;
   /** Playback file(s) as data URIs when the page was exported with audio. */
   audio?: { mix?: string } | null;
   /** The owner's view prefs at export time: the starting point for every reader. */

@@ -236,6 +236,12 @@
   // ---- edits -----------------------------------------------------------------------------
   let editing = $state(false);
   let follow = $state(true);
+  // Drum tab under the chords, remembered per device; only offered once the stem exists.
+  let showDrums = $state(stored<string>("chordku.drums.on", "0") === "1");
+  const setDrums = (on: boolean) => {
+    showDrums = on;
+    localStorage.setItem("chordku.drums.on", on ? "1" : "0");
+  };
   let target = $state<{ segment: number; range: { t0_ms: number; t1_ms: number }; key: Key | null } | null>(null);
 
   function openEditor(t: CellTarget) {
@@ -401,6 +407,13 @@
 
   {#if chart}
     <ViewControls bind:prefs {capoOptions} {floating} {follow} onfloating={setFloating} onfollow={(on) => (follow = on)}>
+        <button
+          class:on={showDrums && !!detail.drums}
+          onclick={() => setDrums(!showDrums)}
+          aria-pressed={showDrums && !!detail.drums}
+          disabled={!detail.drums}
+          title={detail.drums ? "Kick, snare, dan hi-hat per bar, dibaca dari stem drum" : "Pisahkan vokal dan instrumen dulu: tab drum dibaca dari stem drum"}
+        >Tab drum</button>
         <button class:on={editing} onclick={() => (editing = !editing)} aria-pressed={editing}>{editing ? "Selesai koreksi" : "Koreksi chord"}</button>
         {#if detail.edits.length}<button class="ghost small" onclick={undoLast} title="Batalkan koreksi terakhir">Urungkan</button>{/if}
         <div class="menu-wrap">
@@ -448,6 +461,9 @@
         </div>
     </ViewControls>
 
+    {#if showDrums && detail.drums}
+      <p class="muted small legend no-print">Tab drum per bar, 16 langkah: <span class="sw hat"></span> hi-hat (redup = diperkirakan dari pola bar) · <span class="sw snare"></span> snare · <span class="sw kick"></span> kick. Perkiraan dari stem drum; tom dan simbal bisa terbaca sebagai kick atau hi-hat.</p>
+    {/if}
     {#if floating}
       <FloatingDiagrams items={floatItems} mode={floatMode === "all" ? "all" : prefs.instrument} onmode={setFloatMode} onclose={() => setFloating(false)} />
     {/if}
@@ -501,6 +517,7 @@
       {editing}
       {follow}
       {loop}
+      drums={showDrums ? detail.drums : null}
       onseek={(ms) => engine.seek(ms / 1000)}
       onedit={openEditor}
       onloop={(r) => engine.setLoop(r)}
@@ -603,6 +620,25 @@
   }
   .option:hover {
     background: var(--bg-3);
+  }
+  .legend {
+    margin: 0.5rem 0 0;
+  }
+  .sw {
+    display: inline-block;
+    width: 0.8em;
+    height: 0.55em;
+    border-radius: 3px;
+    vertical-align: middle;
+  }
+  .sw.hat {
+    background: var(--muted);
+  }
+  .sw.snare {
+    background: var(--good);
+  }
+  .sw.kick {
+    background: var(--accent);
   }
   .strip {
     display: flex;

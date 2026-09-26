@@ -61,6 +61,7 @@ fn song_payload(st: &AppState, id: &str) -> ApiResult<Value> {
         "edits": st.db.edits(id)?,
         "prefs": st.db.prefs(id)?,
         "stems": st.db.stems(id)?,
+        "drums": st.db.drums(id)?.and_then(|j| serde_json::from_str::<Value>(&j).ok()),
         "jobs": jobs,
     }))
 }
