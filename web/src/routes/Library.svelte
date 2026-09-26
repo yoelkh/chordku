@@ -161,7 +161,8 @@
   </select>
   {#if setlistId}
     <button class="small primary" onclick={() => (picking = true)}>Tambah dari pustaka</button>
-    <a class="button small" href={api.shareSetlistUrl(setlistId)} download title="Unduh setlist ini sebagai satu halaman web (chord saja, tanpa audio) untuk dibagikan lewat WhatsApp atau diunggah ke GitHub Pages">Bagikan (unduh halaman web)</a>
+    <a class="button small" href={api.shareSetlistUrl(setlistId, true)} download title="Satu file HTML berisi chord dan audio semua lagu: bisa diputar seperti di aplikasi. Ukuran sekitar 1,3x total audionya.">Bagikan dengan audio</a>
+    <a class="button small" href={api.shareSetlistUrl(setlistId)} download title="Satu file HTML kecil berisi chord saja (tanpa audio); lagu dari YouTube diputar lewat video tersemat.">Bagikan chord saja</a>
     <button class="small" onclick={renameSetlist}>Ganti nama</button>
     <button class="small danger" onclick={deleteSetlist}>Hapus setlist</button>
   {:else}

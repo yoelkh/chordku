@@ -127,14 +127,18 @@ Environment variables: `CHORDKU_PORT` (7464), `CHORDKU_DATA` (default
 
 ## Share a setlist
 
-In **Pustaka**, open a setlist and press **Bagikan (unduh halaman web)**. The download is a single
-HTML file with the charts, edits and diagrams of every song in the set, and nothing else: no
-audio, no server. It works from a phone's file manager, from a chat attachment, or from any
-static host. Each reader's transpose, capo and notation choices stay in their own browser.
+In **Pustaka**, open a setlist and press **Bagikan dengan audio** (one HTML file with the charts,
+edits, diagrams *and* the playback audio of every song, about 1.3x the size of the audio) or
+**Bagikan chord saja** (charts only, a few hundred KB). Either file needs no server: it works from
+a phone's file manager, from a chat attachment, or from any static host. With audio the page
+plays like the app (tempo, pitch-follow, loops); each reader's transpose, capo and notation
+choices stay in their own browser.
 
-Songs that came from YouTube get the video embedded (network needed): the beat highlight and
-auto-scroll follow the video, cells seek it, sections and A-B ranges loop it. Other songs run on a
-silent tempo clock. The screen stays awake while a song is open.
+In the charts-only file, songs that came from YouTube get the video embedded (network needed):
+the beat highlight and auto-scroll follow the video, cells seek it, sections and A-B ranges loop
+it. Other songs run on a silent tempo clock. The screen stays awake while a song is open.
+Publishing audio you do not own on a public site is your responsibility; the charts-only file is
+the one meant for GitHub Pages.
 
 To publish on GitHub Pages (free, public):
 

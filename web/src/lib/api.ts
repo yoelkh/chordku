@@ -175,7 +175,7 @@ export const api = {
   deleteSetlist: (id: number) => request<{ setlists: Setlist[] }>("DELETE", `/setlists/${id}`),
   orderSetlist: (id: number, song_ids: string[]) => request<{ songs: Song[] }>("PUT", `/setlists/${id}/songs`, { song_ids }),
   /** The setlist as one self-contained web page (a download, not a JSON call). */
-  shareSetlistUrl: (id: number) => `/api/setlists/${id}/share.html`,
+  shareSetlistUrl: (id: number, audio = false) => `/api/setlists/${id}/share.html${audio ? "?audio=1" : ""}`,
   addToSetlist: (id: number, song_id: string) => request<{ setlists: Setlist[] }>("POST", `/setlists/${id}/songs`, { song_id }),
   session: () => request<{ lan: boolean; paired: boolean }>("GET", "/session"),
   pair: (code: string, name: string) => request<{ ok: boolean; name: string }>("POST", "/pair", { code, name }),

@@ -1,6 +1,6 @@
 //! Setlists: ordered groups of songs for a rehearsal or a gig.
 
-use axum::extract::{Path, State};
+use axum::extract::{Path, Query, State};
 use axum::http::{header, HeaderValue, StatusCode};
 use axum::response::{IntoResponse, Response};
 use axum::Json;
@@ -83,13 +83,40 @@ pub async fn add_song(State(st): State<AppState>, Path(id): Path<i64>, Json(body
 
 /// Everything the standalone viewer needs: songs in set order with their analysis, edits and
 /// the owner's view prefs. Songs without a chart are left out.
-fn share_data(st: &AppState, id: i64) -> ApiResult<Value> {
+#[derive(Deserialize, Default)]
+pub struct ShareQuery {
+    /// Embed each song's playback file (`mix.opus`) as a data URI: a much bigger file, but the
+    /// page then plays the song like the app does, from any folder or chat attachment.
+    #[serde(default)]
+    audio: Option<String>,
+}
+
+impl ShareQuery {
+    fn audio(&self) -> bool {
+        matches!(self.audio.as_deref(), Some("1" | "true" | "yes"))
+    }
+}
+
+fn share_data(st: &AppState, id: i64, with_audio: bool) -> ApiResult<Value> {
     let setlist = st.db.setlists()?.into_iter().find(|l| l.id == id).ok_or_else(ApiError::not_found)?;
     let mut songs = Vec::new();
     for song in st.db.setlist_songs(id)? {
         let Some(analysis) = st.db.active_analysis(&song.id)? else { continue };
         let analysis: Value = serde_json::from_str(&analysis).map_err(anyhow::Error::from)?;
+        let audio = if with_audio {
+            let mix = st.cfg.song_dir(&song.id).join(crate::jobs::MIX_FILE);
+            match std::fs::read(&mix) {
+                Ok(bytes) => {
+                    use base64::Engine as _;
+                    json!({ "mix": format!("data:audio/ogg;base64,{}", base64::engine::general_purpose::STANDARD.encode(bytes)) })
+                }
+                Err(_) => Value::Null,
+            }
+        } else {
+            Value::Null
+        };
         songs.push(json!({
+            "audio": audio,
             "id": song.id,
             "title": song.title,
             "artist": song.artist,
@@ -110,15 +137,15 @@ fn share_data(st: &AppState, id: i64) -> ApiResult<Value> {
     }))
 }
 
-pub async fn share_json(State(st): State<AppState>, Path(id): Path<i64>) -> ApiResult<Json<Value>> {
-    Ok(Json(share_data(&st, id)?))
+pub async fn share_json(State(st): State<AppState>, Path(id): Path<i64>, Query(q): Query<ShareQuery>) -> ApiResult<Json<Value>> {
+    Ok(Json(share_data(&st, id, q.audio())?))
 }
 
 /// `viewer.html` (built with the UI) with the setlist embedded, served as a download. The
 /// file needs no server afterwards: open it from disk, send it over chat, or put it on any
 /// static host.
-pub async fn share_html(State(st): State<AppState>, Path(id): Path<i64>) -> ApiResult<Response> {
-    let data = share_data(&st, id)?;
+pub async fn share_html(State(st): State<AppState>, Path(id): Path<i64>, Query(q): Query<ShareQuery>) -> ApiResult<Response> {
+    let data = share_data(&st, id, q.audio())?;
     let name = data["setlist"]["name"].as_str().unwrap_or("setlist").to_owned();
     let template = crate::routes::ui::Assets::get("viewer.html")
         .ok_or_else(|| ApiError::bad_request("viewer.html belum dibangun: jalankan `npm run build` di folder web"))?;
@@ -129,8 +156,8 @@ pub async fn share_html(State(st): State<AppState>, Path(id): Path<i64>) -> ApiR
         "<!--CHORDKU_SETLIST-->",
         &format!("<script type=\"application/json\" id=\"chordku-setlist\">{json}</script>"),
     );
-    let slug = slugify(&name);
-    let disposition = format!("attachment; filename=\"{slug}.html\"; filename*=UTF-8''{}", percent_encode(&format!("{name}.html")));
+    let slug = slugify(&name) + if q.audio() { "-audio" } else { "" };
+    let disposition = format!("attachment; filename=\"{slug}.html\"; filename*=UTF-8''{}", percent_encode(&format!("{name}{}.html", if q.audio() { " (audio)" } else { "" })));
     Ok((
         StatusCode::OK,
         [

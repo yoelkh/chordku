@@ -130,14 +130,18 @@ Variabel lingkungan: `CHORDKU_PORT` (7464), `CHORDKU_DATA` (bawaan `%LOCALAPPDAT
 
 ## Bagikan setlist
 
-Di **Pustaka**, buka sebuah setlist lalu tekan **Bagikan (unduh halaman web)**. Hasil unduhannya
-satu file HTML berisi chart, koreksi, dan diagram semua lagu di setlist itu, tanpa yang lain: tanpa
-audio, tanpa server. Bisa dibuka dari pengelola file HP, dari lampiran chat, atau dari hosting
-statis mana pun. Pilihan transpose, capo, dan notasi tiap pembaca tersimpan di browsernya sendiri.
+Di **Pustaka**, buka sebuah setlist lalu tekan **Bagikan dengan audio** (satu file HTML berisi chart,
+koreksi, diagram, *dan* audio semua lagu; ukurannya sekitar 1,3x total audionya) atau **Bagikan
+chord saja** (chord saja, beberapa ratus KB). Keduanya tidak butuh server: bisa dibuka dari
+pengelola file HP, dari lampiran chat, atau dari hosting statis mana pun. Dengan audio, halaman
+memutar lagu seperti di aplikasi (tempo, audio ikut transpose, pengulangan); pilihan transpose,
+capo, dan notasi tiap pembaca tersimpan di browsernya sendiri.
 
-Lagu yang berasal dari YouTube mendapat sematan videonya (perlu internet): sorotan ketukan dan
-gulir otomatis mengikuti video, ketuk sel untuk melompat, bagian dan rentang A-B mengulang video.
-Lagu lain berjalan dengan penghitung tempo tanpa suara. Layar tetap menyala selama lagu terbuka.
+Di file chord saja, lagu yang berasal dari YouTube mendapat sematan videonya (perlu internet):
+sorotan ketukan dan gulir otomatis mengikuti video, ketuk sel untuk melompat, bagian dan rentang
+A-B mengulang video. Lagu lain berjalan dengan penghitung tempo tanpa suara. Layar tetap menyala
+selama lagu terbuka. Menyebarkan audio yang bukan milik Anda di situs publik adalah tanggung jawab
+Anda; file chord saja yang dimaksudkan untuk GitHub Pages.
 
 Untuk menerbitkan ke GitHub Pages (gratis, publik):
 

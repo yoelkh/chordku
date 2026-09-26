@@ -14,7 +14,8 @@
   import { DEFAULT_PREFS, keySummary, labelAt, normalizePrefs, type ViewPrefs } from "../lib/chart/view";
   import { clock } from "../lib/i18n/id";
   import { classToChord, suggestCapo, transposeChord, wrapTranspose } from "../lib/theory";
-  import { VirtualClock, YouTubeClock, type Clock } from "./clock";
+  import { Engine } from "../lib/audio/engine";
+  import { EngineClock, VirtualClock, YouTubeClock, type Clock } from "./clock";
   import { youtubeId, type ViewerSong } from "./data";
 
   let { song, setlist, index, total, onnav }: { song: ViewerSong; setlist: { id: number; name: string }; index: number; total: number; onnav: (i: number) => void } = $props();
@@ -45,13 +46,18 @@
   });
 
   // ---- time source ------------------------------------------------------------------------
-  const videoId = youtubeId(s.src_url);
+  const audioUrl = s.audio?.mix ?? null;
+  // With audio embedded the page plays like the app; the video is only a fallback for pages
+  // exported without it.
+  const videoId = audioUrl ? null : youtubeId(s.src_url);
   let playing = $state(false);
   let positionMs = $state(0);
   let rate = $state(1);
   let loop = $state<{ a: number; b: number } | null>(null);
-  let ready = $state(!videoId);
-  let mode = $state<"youtube" | "virtual">(videoId ? "youtube" : "virtual");
+  let ready = $state(!videoId && !audioUrl);
+  let loading = $state<number | null>(null);
+  let mode = $state<"audio" | "youtube" | "virtual">(audioUrl ? "audio" : videoId ? "youtube" : "virtual");
+  let engine: Engine | null = null;
   let note = $state("");
   let videoEl = $state<HTMLElement>();
   let showVideo = $state(true);
@@ -84,8 +90,26 @@
     if (why) note = `${why}. Chart berjalan dengan penghitung tempo (tanpa suara).`;
     attach(new VirtualClock(chart.duration_ms / 1000));
   }
+  async function useAudio(url: string) {
+    engine = new Engine();
+    attach(new EngineClock(engine));
+    loading = 0;
+    try {
+      await engine.load([{ name: "mix", url }], (f) => (loading = f));
+      ready = true;
+    } catch (e) {
+      useVirtual(`Audio gagal dimuat (${(e as Error).message})`);
+    } finally {
+      loading = null;
+    }
+  }
   $effect(() => {
-    if (videoId && videoEl && !source) {
+    void engine?.setTranspose(prefs.pitch_follow ? prefs.transpose : 0);
+  });
+  $effect(() => {
+    if (audioUrl && !source) {
+      untrack(() => void useAudio(audioUrl));
+    } else if (videoId && videoEl && !source) {
       const el = videoEl;
       untrack(() => attach(new YouTubeClock(el, videoId, (why) => useVirtual(why))));
     } else if (!videoId && !source) {
@@ -220,7 +244,7 @@
   </div>
 </div>
 
-<ViewControls bind:prefs {capoOptions} {floating} {follow} showPitchFollow={false} onfloating={setFloating} onfollow={setFollow}>
+<ViewControls bind:prefs {capoOptions} {floating} {follow} showPitchFollow={mode === "audio"} onfloating={setFloating} onfollow={setFollow}>
   {#if videoId && mode === "youtube"}
     <button class:on={showVideo} onclick={() => (showVideo = !showVideo)} aria-pressed={showVideo}>Video</button>
   {/if}
@@ -286,7 +310,7 @@
 <Transport
   {playing}
   {ready}
-  loading={null}
+  {loading}
   {positionMs}
   durationMs={chart.duration_ms}
   {rate}

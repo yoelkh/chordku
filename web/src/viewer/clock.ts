@@ -7,7 +7,7 @@ export interface Loop {
 }
 
 export interface Clock {
-  readonly kind: "youtube" | "virtual";
+  readonly kind: "audio" | "youtube" | "virtual";
   readonly isPlaying: boolean;
   /** Seconds. */
   position(): number;
@@ -25,7 +25,7 @@ export interface Clock {
 }
 
 abstract class Base implements Clock {
-  abstract readonly kind: "youtube" | "virtual";
+  abstract readonly kind: "audio" | "youtube" | "virtual";
   abstract get isPlaying(): boolean;
   abstract position(): number;
   abstract toggle(): void;
@@ -107,6 +107,47 @@ export class VirtualClock extends Base {
   }
   dispose() {
     this.listeners.clear();
+  }
+}
+
+// ---- the app's own audio engine (pages exported with audio) ----------------------------------
+
+import type { Engine } from "../lib/audio/engine";
+
+/** The Web Audio engine the app uses: sample-locked playback, tempo and pitch shift. */
+export class EngineClock implements Clock {
+  readonly kind = "audio" as const;
+  constructor(readonly engine: Engine) {}
+  get isPlaying() {
+    return this.engine.isPlaying;
+  }
+  position() {
+    return this.engine.position();
+  }
+  toggle() {
+    this.engine.toggle();
+  }
+  seek(sec: number) {
+    void this.engine.seek(sec);
+  }
+  setRate(rate: number) {
+    void this.engine.setRate(rate);
+  }
+  getRate() {
+    return this.engine.getRate();
+  }
+  setLoop(loop: Loop | null) {
+    void this.engine.setLoop(loop);
+  }
+  getLoop() {
+    return this.engine.getLoop();
+  }
+  on(fn: () => void) {
+    return this.engine.on(() => fn());
+  }
+  tick() {}
+  dispose() {
+    void this.engine.dispose();
   }
 }
 
