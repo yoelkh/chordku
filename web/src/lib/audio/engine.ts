@@ -24,6 +24,25 @@ type StretchNode = AudioNode & {
 
 export type EngineEvent = "state" | "ended";
 
+// A page opened from disk (a shared setlist file) has an opaque origin, and Chrome then refuses
+// worklet modules served from blob: URLs, which is how signalsmith-stretch ships its processor.
+// The same source inlined as a data: URL loads fine, so on file: pages the blob is read back
+// and re-issued that way. Installed once; http(s) pages are left alone.
+let workletShim = false;
+function shimWorkletForFilePages() {
+  if (workletShim || location.protocol !== "file:" || typeof AudioWorklet === "undefined") return;
+  workletShim = true;
+  const original = AudioWorklet.prototype.addModule;
+  AudioWorklet.prototype.addModule = async function (url: string | URL, options?: WorkletOptions) {
+    let target = String(url);
+    if (target.startsWith("blob:")) {
+      const source = await (await fetch(target)).text();
+      target = "data:text/javascript;base64," + btoa(unescape(encodeURIComponent(source)));
+    }
+    return original.call(this, target, options);
+  };
+}
+
 export class Engine {
   readonly ctx: AudioContext;
   private buffers = new Map<string, AudioBuffer>();
@@ -229,6 +248,7 @@ export class Engine {
     if (need && !this.stretch) {
       // Loaded on first use only: most sessions never change tempo or key, and the WASM is
       // half of the application's size.
+      shimWorkletForFilePages();
       this.stretchLoading ??= import("signalsmith-stretch")
         .then((m) => m.default(this.ctx))
         .then(async (node: StretchNode) => {
