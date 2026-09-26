@@ -35,7 +35,8 @@
       return null;
     }
   };
-  let prefs = $state<ViewPrefs>(readStored() ?? { ...normalizePrefs(s.prefs), pitch_follow: false });
+  // With audio embedded the player follows transpose like the app does; without audio the flag is moot.
+  let prefs = $state<ViewPrefs>(readStored() ?? { ...normalizePrefs(s.prefs), pitch_follow: !!s.audio?.mix });
   $effect(() => {
     const json = JSON.stringify(prefs);
     try {
@@ -92,19 +93,26 @@
   }
   async function useAudio(url: string) {
     engine = new Engine();
+    // Handle for automated checks and for curious users in the console.
+    (window as unknown as { chordkuEngine?: Engine }).chordkuEngine = engine;
     attach(new EngineClock(engine));
     loading = 0;
     try {
       await engine.load([{ name: "mix", url }], (f) => (loading = f));
       ready = true;
+      void engine.setTranspose(untrack(shift)); // the engine did not exist when the effect first ran
     } catch (e) {
       useVirtual(`Audio gagal dimuat (${(e as Error).message})`);
     } finally {
       loading = null;
     }
   }
+  // Read the prefs before the engine check: with `engine?.` short-circuiting first, nothing
+  // would be tracked and the effect would never run again.
+  const shift = () => (prefs.pitch_follow ? prefs.transpose : 0);
   $effect(() => {
-    void engine?.setTranspose(prefs.pitch_follow ? prefs.transpose : 0);
+    const semitones = shift();
+    void engine?.setTranspose(semitones);
   });
   $effect(() => {
     if (audioUrl && !source) {
