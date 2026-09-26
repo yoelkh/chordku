@@ -7,6 +7,7 @@
   import Mixer, { type Channel } from "../components/Mixer.svelte";
   import PianoDiagram from "../components/PianoDiagram.svelte";
   import Transport from "../components/Transport.svelte";
+  import ViewControls from "../components/ViewControls.svelte";
   import { api, onServerEvent, type Job, type Setlist, type SongDetail } from "../lib/api";
   import { Engine, type TrackSpec } from "../lib/audio/engine";
   import { download, toChordPro, toText } from "../lib/chart/export";
@@ -185,7 +186,6 @@
     const k = chart.key ? { tonic_pc: (chart.key.tonic_pc + prefs.transpose + 12) % 12, mode: chart.key.mode } : null;
     return suggestCapo(chords, k).slice(0, 3);
   });
-  let showCapo = $state(false);
 
   // Diagram strip: the chord sounding now, then the next few different ones.
   const upcoming = $derived.by(() => {
@@ -400,55 +400,7 @@
   {/if}
 
   {#if chart}
-    <div class="toolbar card no-print">
-      <div class="group" title="Pindah nada dasar. Audio ikut berpindah bila 'Audio ikut' aktif. Pintasan: [ dan ]">
-        <span class="muted small">Transpose</span>
-        <button class="icon" onclick={() => (prefs.transpose = wrapTranspose(prefs.transpose - 1))} aria-label="Turun setengah nada">−</button>
-        <strong class="value mono">{prefs.transpose > 0 ? "+" : ""}{prefs.transpose}</strong>
-        <button class="icon" onclick={() => (prefs.transpose = wrapTranspose(prefs.transpose + 1))} aria-label="Naik setengah nada">+</button>
-        <label class="row small check"><input type="checkbox" bind:checked={prefs.pitch_follow} /> Audio ikut</label>
-      </div>
-
-      <div class="group capo">
-        <span class="muted small">Capo</span>
-        <button class="icon" onclick={() => (prefs.capo = Math.max(0, prefs.capo - 1))} aria-label="Kurangi capo">−</button>
-        <strong class="value mono">{prefs.capo}</strong>
-        <button class="icon" onclick={() => (prefs.capo = Math.min(11, prefs.capo + 1))} aria-label="Tambah capo">+</button>
-        <button class="small" class:on={showCapo} onclick={() => (showCapo = !showCapo)}>Saran</button>
-        {#if showCapo}
-          <div class="card pop">
-            <div class="muted small">Posisi capo dengan bentuk chord termudah</div>
-            {#each capoOptions as o}
-              <button class="option" class:on={o.capo === prefs.capo} onclick={() => ((prefs.capo = o.capo), (showCapo = false))}>
-                <strong>{o.capo === 0 ? "Tanpa capo" : `Capo ${o.capo}`}</strong>
-                {#if o.shapeKey}<span class="pill">main di {keyName(o.shapeKey)}</span>{/if}
-                <span class="muted small shapes">{o.shapes.join("  ")}</span>
-              </button>
-            {/each}
-          </div>
-        {/if}
-      </div>
-
-      <div class="group">
-        <select bind:value={prefs.simplify} aria-label="Tingkat detail chord">
-          <option value={0}>Chord lengkap</option>
-          <option value={1}>Sederhana</option>
-          <option value={2}>Dasar saja</option>
-        </select>
-        <select bind:value={prefs.notation} aria-label="Notasi">
-          <option value="names">Nama chord</option>
-          <option value="nashville">Angka (Nashville)</option>
-        </select>
-        <select bind:value={prefs.instrument} aria-label="Instrumen diagram">
-          <option value="guitar">Gitar</option>
-          <option value="ukulele">Ukulele</option>
-          <option value="piano">Piano</option>
-        </select>
-      </div>
-
-      <div class="group end">
-        <button class:on={floating} onclick={() => setFloating(!floating)} aria-pressed={floating} title="Diagram chord yang tetap terlihat saat chart digulir">Diagram mengambang</button>
-        <button class:on={follow} onclick={() => (follow = !follow)} aria-pressed={follow} title="Gulir otomatis mengikuti lagu">Ikuti</button>
+    <ViewControls bind:prefs {capoOptions} {floating} {follow} onfloating={setFloating} onfollow={(on) => (follow = on)}>
         <button class:on={editing} onclick={() => (editing = !editing)} aria-pressed={editing}>{editing ? "Selesai koreksi" : "Koreksi chord"}</button>
         {#if detail.edits.length}<button class="ghost small" onclick={undoLast} title="Batalkan koreksi terakhir">Urungkan</button>{/if}
         <div class="menu-wrap">
@@ -494,8 +446,7 @@
             </div>
           {/if}
         </div>
-      </div>
-    </div>
+    </ViewControls>
 
     {#if floating}
       <FloatingDiagrams items={floatItems} mode={floatMode === "all" ? "all" : prefs.instrument} onmode={setFloatMode} onclose={() => setFloating(false)} />
@@ -615,41 +566,6 @@
   .job.failed {
     border-color: var(--bad);
   }
-  .toolbar {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem 1.1rem;
-    padding: 0.6rem 0.8rem;
-    align-items: center;
-    position: relative;
-    z-index: 10;
-  }
-  .group {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0.35rem;
-    position: relative;
-    min-width: 0;
-  }
-  .group select {
-    flex: 1 1 7.5rem;
-    min-width: 0;
-    max-width: 100%;
-  }
-  .group.end {
-    margin-left: auto;
-    flex-wrap: wrap;
-  }
-  .value {
-    min-width: 1.9rem;
-    text-align: center;
-    font-size: 1.05rem;
-  }
-  .check {
-    gap: 0.3rem;
-    margin-left: 0.3rem;
-  }
   .menu-wrap {
     position: relative;
   }
@@ -688,9 +604,6 @@
   .option:hover {
     background: var(--bg-3);
   }
-  .shapes {
-    flex-basis: 100%;
-  }
   .strip {
     display: flex;
     align-items: flex-end;
@@ -727,11 +640,6 @@
     }
     .head {
       display: none;
-    }
-  }
-  @media (max-width: 640px) {
-    .group.end {
-      margin-left: 0;
     }
   }
 </style>

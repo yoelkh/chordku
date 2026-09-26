@@ -57,6 +57,8 @@ pub fn router(state: AppState) -> Router {
             get(routes::setlists::get).patch(routes::setlists::rename).delete(routes::setlists::remove),
         )
         .route("/setlists/{id}/songs", put(routes::setlists::set_songs).post(routes::setlists::add_song))
+        .route("/setlists/{id}/share.html", get(routes::setlists::share_html))
+        .route("/setlists/{id}/share.json", get(routes::setlists::share_json))
         .route("/events", get(routes::events::stream))
         .route("/media/{song_id}/{file}", get(routes::media::serve))
         .route("/session", get(routes::lan::session))

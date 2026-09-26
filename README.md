@@ -40,6 +40,9 @@ no Python at runtime. The UI is in Indonesian.
   any other chord. Corrections survive a re-analysis.
 - **Library.** Search, tags, favourites, setlists; export to ChordPro, plain text or PDF.
 - **From your phone.** Opt-in HTTPS mode on your Wi-Fi with QR pairing.
+- **Share a setlist.** One self-contained web page per setlist (charts only, no audio): send it over
+  chat or put it on GitHub Pages. Everyone opens it on their own phone, picks their own transpose
+  and capo, and the chart follows the embedded YouTube video.
 
 <p align="center">
   <img src="docs/assets/app.svg" alt="The song view: toolbar, synced chord chart, floating chord diagrams, stem mixer and transport" width="100%">
@@ -121,6 +124,27 @@ Environment variables: `CHORDKU_PORT` (7464), `CHORDKU_DATA` (default
   6/8 metre are in the same menu.
 - Shortcuts: space (play/pause), left/right (5 s), `[` and `]` (transpose).
 - Microphone recordings work best at 20 s or longer, without much talking over them.
+
+## Share a setlist
+
+In **Pustaka**, open a setlist and press **Bagikan (unduh halaman web)**. The download is a single
+HTML file with the charts, edits and diagrams of every song in the set, and nothing else: no
+audio, no server. It works from a phone's file manager, from a chat attachment, or from any
+static host. Each reader's transpose, capo and notation choices stay in their own browser.
+
+Songs that came from YouTube get the video embedded (network needed): the beat highlight and
+auto-scroll follow the video, cells seek it, sections and A-B ranges loop it. Other songs run on a
+silent tempo clock. The screen stays awake while a song is open.
+
+To publish on GitHub Pages (free, public):
+
+```powershell
+tools\publish-setlist.ps1 "$HOME\Downloads\ibadah-minggu.html"
+```
+
+The first run creates the public repository `<you>/chordku-setlists` and turns Pages on; every
+run after that adds or replaces one page and prints its link
+(`https://<you>.github.io/chordku-setlists/<name>/`). `-Remove <name>` takes a page down.
 
 ## Command line
 

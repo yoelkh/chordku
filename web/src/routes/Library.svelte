@@ -161,6 +161,7 @@
   </select>
   {#if setlistId}
     <button class="small primary" onclick={() => (picking = true)}>Tambah dari pustaka</button>
+    <a class="button small" href={api.shareSetlistUrl(setlistId)} download title="Unduh setlist ini sebagai satu halaman web (chord saja, tanpa audio) untuk dibagikan lewat WhatsApp atau diunggah ke GitHub Pages">Bagikan (unduh halaman web)</a>
     <button class="small" onclick={renameSetlist}>Ganti nama</button>
     <button class="small danger" onclick={deleteSetlist}>Hapus setlist</button>
   {:else}
@@ -249,6 +250,18 @@
 <style>
   .filters {
     margin: 1rem 0 0.8rem;
+  }
+  a.button {
+    display: inline-block;
+    border: 1px solid var(--line);
+    background: var(--bg-3);
+    border-radius: 8px;
+    padding: 0.45em 0.85em;
+    color: inherit;
+    text-decoration: none;
+  }
+  a.button:hover {
+    border-color: var(--muted);
   }
   .filters + .filters {
     margin-top: 0;

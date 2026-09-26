@@ -8,7 +8,7 @@ use rust_embed::Embed;
 
 #[derive(Embed)]
 #[folder = "$CARGO_MANIFEST_DIR/../../web/dist"]
-struct Assets;
+pub(crate) struct Assets;
 
 pub async fn serve(uri: Uri) -> Response {
     let path = uri.path().trim_start_matches('/');

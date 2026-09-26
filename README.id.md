@@ -42,6 +42,9 @@ tanpa Python saat dijalankan. Antarmukanya berbahasa Indonesia.
   lain. Koreksi tetap ada walau lagu dianalisis ulang.
 - **Pustaka.** Cari, label, favorit, setlist; ekspor ke ChordPro, teks, atau PDF.
 - **Dari HP.** Mode HTTPS di Wi-Fi rumah (harus diaktifkan dulu) dengan pemasangan lewat kode QR.
+- **Bagikan setlist.** Satu halaman web mandiri per setlist (chord saja, tanpa audio): kirim lewat
+  chat atau unggah ke GitHub Pages. Semua orang membukanya di HP masing-masing, memilih transpose
+  dan capo sendiri, dan chart mengikuti video YouTube yang disematkan.
 
 <p align="center">
   <img src="docs/assets/app.svg" alt="Halaman lagu: bilah alat, chart chord sinkron, diagram chord mengambang, mixer stem, dan transport" width="100%">
@@ -124,6 +127,27 @@ Variabel lingkungan: `CHORDKU_PORT` (7464), `CHORDKU_DATA` (bawaan `%LOCALAPPDAT
   kali lipat atau setengahnya, ada pilihannya di menu yang sama. Birama 3/4 atau 6/8 juga bisa diatur.
 - Pintasan: spasi (putar/jeda), panah kiri/kanan (5 detik), `[` dan `]` (transpose).
 - Rekaman mikrofon paling akurat bila 20 detik atau lebih dan tanpa banyak suara obrolan.
+
+## Bagikan setlist
+
+Di **Pustaka**, buka sebuah setlist lalu tekan **Bagikan (unduh halaman web)**. Hasil unduhannya
+satu file HTML berisi chart, koreksi, dan diagram semua lagu di setlist itu, tanpa yang lain: tanpa
+audio, tanpa server. Bisa dibuka dari pengelola file HP, dari lampiran chat, atau dari hosting
+statis mana pun. Pilihan transpose, capo, dan notasi tiap pembaca tersimpan di browsernya sendiri.
+
+Lagu yang berasal dari YouTube mendapat sematan videonya (perlu internet): sorotan ketukan dan
+gulir otomatis mengikuti video, ketuk sel untuk melompat, bagian dan rentang A-B mengulang video.
+Lagu lain berjalan dengan penghitung tempo tanpa suara. Layar tetap menyala selama lagu terbuka.
+
+Untuk menerbitkan ke GitHub Pages (gratis, publik):
+
+```powershell
+tools\publish-setlist.ps1 "$HOME\Downloads\ibadah-minggu.html"
+```
+
+Jalankan pertama membuat repositori publik `<akun>/chordku-setlists` dan mengaktifkan Pages;
+jalankan berikutnya menambah atau mengganti satu halaman dan mencetak tautannya
+(`https://<akun>.github.io/chordku-setlists/<nama>/`). `-Remove <nama>` menurunkan halaman.
 
 ## Baris perintah
 

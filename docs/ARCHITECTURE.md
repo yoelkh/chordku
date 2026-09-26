@@ -73,3 +73,14 @@ stereo buffers would not fit in memory.
 | chords (CQT + BTC, in parallel with beats) | 1.2 s |
 | whole fast lane including model load | 6.9 s |
 | separation (htdemucs), RTF 0.38 | ~100 s, 2.5 GB peak |
+
+## Setlist viewer (static)
+
+`web/viewer.html` is a second Vite entry built into one self-contained file (`scripts/inline-viewer.mjs`
+inlines the script and stylesheet; `vite.viewer.config.ts`). It reuses the chart, theory, diagram,
+toolbar (`ViewControls`) and transport components; the time source is either the YouTube IFrame API
+(`viewer/clock.ts`, interpolated between `getCurrentTime` readings) or a silent clock. The server
+embeds a setlist into the template at `GET /api/setlists/{id}/share.html` (`routes/setlists.rs`)
+as a `<script type="application/json">` block and serves it as a download; `share.json` is the
+same data for development. Readers' prefs live in `localStorage`, keyed by setlist and song.
+`tools/publish-setlist.ps1` pushes such a file to a GitHub Pages repository.
