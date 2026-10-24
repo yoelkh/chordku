@@ -6,6 +6,7 @@
   import ChartGrid from "../components/ChartGrid.svelte";
   import ChordDiagram from "../components/ChordDiagram.svelte";
   import FloatingDiagrams, { type DiagramItem } from "../components/FloatingDiagrams.svelte";
+  import Mixer, { type Channel } from "../components/Mixer.svelte";
   import PianoDiagram from "../components/PianoDiagram.svelte";
   import Transport from "../components/Transport.svelte";
   import ViewControls from "../components/ViewControls.svelte";
@@ -36,7 +37,8 @@
     }
   };
   // With audio embedded the player follows transpose like the app does; without audio the flag is moot.
-  let prefs = $state<ViewPrefs>(readStored() ?? { ...normalizePrefs(s.prefs), pitch_follow: !!s.audio?.mix });
+  const tracks = s.audio?.tracks?.length ? s.audio.tracks : s.audio?.mix ? [{ name: "mix", url: s.audio.mix }] : [];
+  let prefs = $state<ViewPrefs>(readStored() ?? { ...normalizePrefs(s.prefs), pitch_follow: tracks.length > 0 });
   $effect(() => {
     const json = JSON.stringify(prefs);
     try {
@@ -47,17 +49,23 @@
   });
 
   // ---- time source ------------------------------------------------------------------------
-  const audioUrl = s.audio?.mix ?? null;
+  const hasAudio = tracks.length > 0;
   // With audio embedded the page plays like the app; the video is only a fallback for pages
   // exported without it.
-  const videoId = audioUrl ? null : youtubeId(s.src_url);
+  const videoId = hasAudio ? null : youtubeId(s.src_url);
   let playing = $state(false);
   let positionMs = $state(0);
   let rate = $state(1);
   let loop = $state<{ a: number; b: number } | null>(null);
-  let ready = $state(!videoId && !audioUrl);
+  let ready = $state(!videoId && !hasAudio);
   let loading = $state<number | null>(null);
-  let mode = $state<"audio" | "youtube" | "virtual">(audioUrl ? "audio" : videoId ? "youtube" : "virtual");
+  let mode = $state<"audio" | "youtube" | "virtual">(hasAudio ? "audio" : videoId ? "youtube" : "virtual");
+  // Per-track volume / mute / solo, like the app's mixer (stems only).
+  let channels = $state<Channel[]>([]);
+  $effect(() => {
+    const anySolo = channels.some((c) => c.solo);
+    for (const c of channels) engine?.setGain(c.name, c.muted || (anySolo && !c.solo) ? 0 : c.gain);
+  });
   let engine: Engine | null = null;
   let note = $state("");
   let videoEl = $state<HTMLElement>();
@@ -91,14 +99,15 @@
     if (why) note = `${why}. Chart berjalan dengan penghitung tempo (tanpa suara).`;
     attach(new VirtualClock(chart.duration_ms / 1000));
   }
-  async function useAudio(url: string) {
+  async function useAudio(list: { name: string; url: string }[]) {
     engine = new Engine();
     // Handle for automated checks and for curious users in the console.
     (window as unknown as { chordkuEngine?: Engine }).chordkuEngine = engine;
     attach(new EngineClock(engine));
     loading = 0;
     try {
-      await engine.load([{ name: "mix", url }], (f) => (loading = f));
+      await engine.load(list, (f) => (loading = f));
+      channels = engine.trackNames.map((name) => ({ name, gain: 1, muted: false, solo: false }));
       ready = true;
       void engine.setTranspose(untrack(shift)); // the engine did not exist when the effect first ran
     } catch (e) {
@@ -115,8 +124,8 @@
     void engine?.setTranspose(semitones);
   });
   $effect(() => {
-    if (audioUrl && !source) {
-      untrack(() => void useAudio(audioUrl));
+    if (hasAudio && !source) {
+      untrack(() => void useAudio(tracks));
     } else if (videoId && videoEl && !source) {
       const el = videoEl;
       untrack(() => attach(new YouTubeClock(el, videoId, (why) => useVirtual(why))));
@@ -286,6 +295,15 @@
 {/if}
 {#if note}<p class="muted small note no-print">{note}</p>{/if}
 
+{#if channels.length > 1}
+  <div class="audio card no-print">
+    <strong class="small">{s.audio?.kind === "light" ? "Vokal dan iringan" : "Instrumen"}</strong>
+    <Mixer {channels} onchange={(c) => (channels = c)} />
+  </div>
+{:else if s.audio?.fallback}
+  <p class="muted small note no-print">Lagu ini belum dipisahkan di ChordKu, jadi yang diputar lagu aslinya.</p>
+{/if}
+
 {#if floating}
   <FloatingDiagrams items={floatItems} mode={floatMode === "all" ? "all" : prefs.instrument} onmode={setFloatMode} onclose={() => setFloating(false)} />
 {/if}
@@ -415,6 +433,12 @@
   }
   .note {
     margin: 0.4rem 0;
+  }
+  .audio {
+    padding: 0.6rem 0.8rem;
+    display: grid;
+    gap: 0.5rem;
+    margin: 0.8rem 0;
   }
   .legend {
     margin: 0.5rem 0 0;

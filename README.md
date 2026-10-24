@@ -130,7 +130,8 @@ Environment variables: `CHORDKU_PORT` (7464), `CHORDKU_DATA` (default
 ## Share a setlist
 
 In **Pustaka**, open a setlist and press **Bagikan dengan audio** (one HTML file with the charts,
-edits, diagrams *and* the playback audio of every song, about 1.3x the size of the audio) or
+edits, diagrams *and* the audio of every song, about 1.3x the size of the audio; choose the four
+separated instruments with a mixer, vocals + backing for phones, or the original song) or
 **Bagikan chord saja** (charts only, a few hundred KB). Either file needs no server: it works from
 a phone's file manager, from a chat attachment, or from any static host. With audio the page
 plays like the app (tempo, pitch-follow, loops); each reader's transpose, capo and notation

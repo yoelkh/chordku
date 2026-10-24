@@ -133,7 +133,8 @@ Variabel lingkungan: `CHORDKU_PORT` (7464), `CHORDKU_DATA` (bawaan `%LOCALAPPDAT
 ## Bagikan setlist
 
 Di **Pustaka**, buka sebuah setlist lalu tekan **Bagikan dengan audio** (satu file HTML berisi chart,
-koreksi, diagram, *dan* audio semua lagu; ukurannya sekitar 1,3x total audionya) atau **Bagikan
+koreksi, diagram, *dan* audio semua lagu; ukurannya sekitar 1,3x total audionya; pilih 4 instrumen
+terpisah dengan mixer, vokal + iringan untuk HP, atau lagu asli) atau **Bagikan
 chord saja** (chord saja, beberapa ratus KB). Keduanya tidak butuh server: bisa dibuka dari
 pengelola file HP, dari lampiran chat, atau dari hosting statis mana pun. Dengan audio, halaman
 memutar lagu seperti di aplikasi (tempo, audio ikut transpose, pengulangan); pilihan transpose,

@@ -12,8 +12,15 @@ export interface ViewerSong {
   analysis: Analysis;
   edits: Edit[];
   drums?: DrumEvents | null;
-  /** Playback file(s) as data URIs when the page was exported with audio. */
-  audio?: { mix?: string } | null;
+  /** Playback file(s) as data URIs when the page was exported with audio. `mix` is the
+   *  single-file form of earlier pages. */
+  audio?: {
+    kind?: "mix" | "light" | "stems";
+    tracks?: { name: string; url: string }[];
+    /** Stems were requested but this song had not been separated. */
+    fallback?: boolean;
+    mix?: string;
+  } | null;
   /** The owner's view prefs at export time: the starting point for every reader. */
   prefs: Record<string, unknown>;
 }

@@ -85,36 +85,82 @@ pub async fn add_song(State(st): State<AppState>, Path(id): Path<i64>, Json(body
 /// the owner's view prefs. Songs without a chart are left out.
 #[derive(Deserialize, Default)]
 pub struct ShareQuery {
-    /// Embed each song's playback file (`mix.opus`) as a data URI: a much bigger file, but the
-    /// page then plays the song like the app does, from any folder or chat attachment.
+    /// Embed audio as data URIs: `mix` (or `1`) the original song, `light` vocals + backing
+    /// (two mono stems, phone friendly), `stems` the four instruments. A song without the
+    /// requested stems falls back to its original audio. A much bigger file, but the page
+    /// then plays like the app does, from any folder or chat attachment.
     #[serde(default)]
     audio: Option<String>,
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum ShareAudio {
+    None,
+    Mix,
+    Light,
+    Stems,
+}
+
 impl ShareQuery {
-    fn audio(&self) -> bool {
-        matches!(self.audio.as_deref(), Some("1" | "true" | "yes"))
+    fn audio(&self) -> ShareAudio {
+        match self.audio.as_deref() {
+            Some("1" | "true" | "yes" | "mix") => ShareAudio::Mix,
+            Some("light") => ShareAudio::Light,
+            Some("stems") => ShareAudio::Stems,
+            _ => ShareAudio::None,
+        }
     }
 }
 
-fn share_data(st: &AppState, id: i64, with_audio: bool) -> ApiResult<Value> {
+impl ShareAudio {
+    /// Download name suffix (human, ASCII slug).
+    fn suffix(self) -> (&'static str, &'static str) {
+        match self {
+            ShareAudio::None => ("", ""),
+            ShareAudio::Mix => (" (audio)", "-audio"),
+            ShareAudio::Light => (" (vokal + iringan)", "-vokal-iringan"),
+            ShareAudio::Stems => (" (4 instrumen)", "-4-instrumen"),
+        }
+    }
+}
+
+/// The song's audio for the page: the requested stems when they all exist, else the original.
+fn share_audio(st: &AppState, song_id: &str, want: ShareAudio) -> Value {
+    use base64::Engine as _;
+    let names: &[&str] = match want {
+        ShareAudio::None => return Value::Null,
+        ShareAudio::Mix => &[],
+        ShareAudio::Light => &["vocals_mono", "backing_mono"],
+        ShareAudio::Stems => &["vocals", "other", "bass", "drums"],
+    };
+    let dir = st.cfg.song_dir(song_id);
+    let encode = |name: &str| -> Option<Value> {
+        let bytes = std::fs::read(dir.join(format!("{name}.opus"))).ok()?;
+        Some(json!({ "name": name, "url": format!("data:audio/ogg;base64,{}", base64::engine::general_purpose::STANDARD.encode(bytes)) }))
+    };
+    let available = st.db.stems(song_id).unwrap_or_default();
+    let have = |n: &str| available.iter().any(|s| s.name == n);
+    if !names.is_empty() && names.iter().all(|n| have(n)) {
+        let tracks: Option<Vec<Value>> = names.iter().map(|n| encode(n)).collect();
+        if let Some(tracks) = tracks {
+            let kind = if want == ShareAudio::Light { "light" } else { "stems" };
+            return json!({ "kind": kind, "tracks": tracks });
+        }
+    }
+    match encode("mix") {
+        // `fallback`: stems were asked for but this song has not been separated.
+        Some(mix) => json!({ "kind": "mix", "tracks": [mix], "fallback": !names.is_empty() }),
+        None => Value::Null,
+    }
+}
+
+fn share_data(st: &AppState, id: i64, with_audio: ShareAudio) -> ApiResult<Value> {
     let setlist = st.db.setlists()?.into_iter().find(|l| l.id == id).ok_or_else(ApiError::not_found)?;
     let mut songs = Vec::new();
     for song in st.db.setlist_songs(id)? {
         let Some(analysis) = st.db.active_analysis(&song.id)? else { continue };
         let analysis: Value = serde_json::from_str(&analysis).map_err(anyhow::Error::from)?;
-        let audio = if with_audio {
-            let mix = st.cfg.song_dir(&song.id).join(crate::jobs::MIX_FILE);
-            match std::fs::read(&mix) {
-                Ok(bytes) => {
-                    use base64::Engine as _;
-                    json!({ "mix": format!("data:audio/ogg;base64,{}", base64::engine::general_purpose::STANDARD.encode(bytes)) })
-                }
-                Err(_) => Value::Null,
-            }
-        } else {
-            Value::Null
-        };
+        let audio = share_audio(st, &song.id, with_audio);
         songs.push(json!({
             "audio": audio,
             "id": song.id,
@@ -157,8 +203,9 @@ pub async fn share_html(State(st): State<AppState>, Path(id): Path<i64>, Query(q
         "<!--CHORDKU_SETLIST-->",
         &format!("<script type=\"application/json\" id=\"chordku-setlist\">{json}</script>"),
     );
-    let slug = slugify(&name) + if q.audio() { "-audio" } else { "" };
-    let disposition = format!("attachment; filename=\"{slug}.html\"; filename*=UTF-8''{}", percent_encode(&format!("{name}{}.html", if q.audio() { " (audio)" } else { "" })));
+    let (human, ascii) = q.audio().suffix();
+    let slug = slugify(&name) + ascii;
+    let disposition = format!("attachment; filename=\"{slug}.html\"; filename*=UTF-8''{}", percent_encode(&format!("{name}{human}.html")));
     Ok((
         StatusCode::OK,
         [

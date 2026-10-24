@@ -82,6 +82,8 @@
     setlists = (await api.setlists()).setlists;
   }
 
+  let shareMenu = $state(false);
+
   // "+ setlist" on a library row: a small menu of setlists.
   let rowMenu = $state<string | null>(null);
   async function addRowTo(songId: string, value: string) {
@@ -161,7 +163,24 @@
   </select>
   {#if setlistId}
     <button class="small primary" onclick={() => (picking = true)}>Tambah dari pustaka</button>
-    <a class="button small" href={api.shareSetlistUrl(setlistId, true)} download title="Satu file HTML berisi chord dan audio semua lagu: bisa diputar seperti di aplikasi. Ukuran sekitar 1,3x total audionya.">Bagikan dengan audio</a>
+    <span class="menu-wrap">
+      <button class="small" class:on={shareMenu} onclick={() => (shareMenu = !shareMenu)} aria-haspopup="menu" aria-expanded={shareMenu}>Bagikan dengan audio</button>
+      {#if shareMenu}
+        <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
+        <div class="card pop share" role="menu" tabindex="-1" onclick={() => (shareMenu = false)}>
+          <div class="muted small">Satu file HTML berisi chord dan audio semua lagu. Lagu yang belum dipisahkan memakai audio aslinya.</div>
+          <a class="option" href={api.shareSetlistUrl(setlistId, "stems")} download>
+            <strong>4 instrumen</strong><span class="muted small">vokal, drum, bass, gitar/piano: bisa dibisukan atau di-solo. Paling besar; paling enak di laptop/tablet.</span>
+          </a>
+          <a class="option" href={api.shareSetlistUrl(setlistId, "light")} download>
+            <strong>Vokal + iringan</strong><span class="muted small">dua jalur ringan, cocok untuk HP: bisukan vokal untuk latihan.</span>
+          </a>
+          <a class="option" href={api.shareSetlistUrl(setlistId, "mix")} download>
+            <strong>Lagu asli</strong><span class="muted small">tanpa pemisahan.</span>
+          </a>
+        </div>
+      {/if}
+    </span>
     <a class="button small" href={api.shareSetlistUrl(setlistId)} download title="Satu file HTML kecil berisi chord saja (tanpa audio); lagu dari YouTube diputar lewat video tersemat.">Bagikan chord saja</a>
     <button class="small" onclick={renameSetlist}>Ganti nama</button>
     <button class="small danger" onclick={deleteSetlist}>Hapus setlist</button>
@@ -292,6 +311,25 @@
     text-align: left;
     background: transparent;
     border-color: transparent;
+  }
+  .pop.share {
+    left: 0;
+    right: auto;
+    width: min(22rem, calc(100vw - 2rem));
+  }
+  .pop.share > .muted {
+    padding: 0.2rem 0.4rem 0.3rem;
+  }
+  a.option {
+    display: grid;
+    gap: 0.1rem;
+    padding: 0.45rem 0.5rem;
+    border-radius: 8px;
+    color: inherit;
+    text-decoration: none;
+  }
+  a.option:hover {
+    background: var(--bg-3);
   }
   .pop .option:hover {
     background: var(--bg-3);
