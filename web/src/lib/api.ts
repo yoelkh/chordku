@@ -154,7 +154,9 @@ export const api = {
   songs: (q = "", tag = "", fav = false) =>
     request<{ songs: Song[]; tags: string[] }>("GET", `/songs?q=${encodeURIComponent(q)}&tag=${encodeURIComponent(tag)}${fav ? "&fav=1" : ""}`),
   song: (id: string) => request<SongDetail>("GET", `/songs/${id}`),
-  addUrl: (url: string) => request<{ existing: boolean; song: Song; job?: Job }>("POST", "/songs/url", { url }),
+  /** `separate`: queue a separation once the song is in. `warning`: why that could not happen. */
+  addUrl: (url: string, separate = false) =>
+    request<{ existing: boolean; retried?: boolean; song: Song; job?: Job; warning?: string | null }>("POST", "/songs/url", { url, separate }),
   patchSong: (id: string, patch: Partial<Pick<Song, "title" | "artist" | "fav" | "tags">>) =>
     request<{ song: Song }>("PATCH", `/songs/${id}`, patch),
   deleteSong: (id: string) => request<{ ok: boolean }>("DELETE", `/songs/${id}`),
@@ -189,10 +191,11 @@ export const api = {
   mediaUrl: (songId: string, file: string) => `/api/media/${songId}/${file}`,
 
   /** Multipart upload with progress (fetch cannot report upload progress). */
-  upload(file: Blob, fields: { title?: string; kind?: "file" | "mic"; filename?: string }, onProgress?: (f: number) => void) {
-    return new Promise<{ existing: boolean; song: Song; job?: Job }>((resolve, reject) => {
+  upload(file: Blob, fields: { title?: string; kind?: "file" | "mic"; filename?: string; separate?: boolean }, onProgress?: (f: number) => void) {
+    return new Promise<{ existing: boolean; song: Song; job?: Job; warning?: string | null }>((resolve, reject) => {
       const form = new FormData();
       if (fields.title) form.append("title", fields.title);
+      if (fields.separate) form.append("separate", "1");
       form.append("kind", fields.kind ?? "file");
       form.append("file", file, fields.filename ?? (file instanceof File ? file.name : "rekaman.webm"));
       const xhr = new XMLHttpRequest();

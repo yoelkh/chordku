@@ -1,9 +1,25 @@
 <script lang="ts">
   import { api } from "../lib/api";
+  import { autoSeparate, setAutoSeparate } from "../lib/autoseparate.svelte";
+  import { parseLinks } from "../lib/links";
   import { fail, toast } from "../lib/toast.svelte";
   import Recorder from "./Recorder.svelte";
 
-  let { onadded, hint = "" }: { onadded: (songId: string, existing: boolean) => void; hint?: string } = $props();
+  let {
+    onadded,
+    onbulk,
+    hint = "",
+  }: { onadded: (songId: string, existing: boolean) => void; onbulk?: (text: string) => void; hint?: string } = $props();
+
+  // Several links pasted into the single-link box: hand them to the bulk dialog instead.
+  function onpaste(e: ClipboardEvent) {
+    const text = e.clipboardData?.getData("text") ?? "";
+    if (onbulk && parseLinks(text).urls.length > 1) {
+      e.preventDefault();
+      onbulk(text);
+    }
+  }
+  const warn = (w?: string | null) => w && toast(w, "info", 9000);
 
   let mode = $state<"url" | "file" | "mic">("url");
   let url = $state("");
@@ -18,7 +34,14 @@
     if (!value || busy) return;
     busy = true;
     try {
-      const res = await api.addUrl(value);
+      const many = parseLinks(value);
+      if (onbulk && many.urls.length > 1) {
+        onbulk(value);
+        url = "";
+        return;
+      }
+      const res = await api.addUrl(value, autoSeparate.on);
+      warn(res.warning);
       if (res.existing) toast("Lagu ini sudah ada di pustaka.", "info");
       url = "";
       onadded(res.song.id, res.existing);
@@ -35,7 +58,8 @@
     try {
       for (const file of Array.from(files)) {
         uploadProgress = 0;
-        const res = await api.upload(file, { kind: "file" }, (f) => (uploadProgress = f));
+        const res = await api.upload(file, { kind: "file", separate: autoSeparate.on }, (f) => (uploadProgress = f));
+        warn(res.warning);
         if (res.existing) toast(`"${file.name}" sudah ada di pustaka.`, "info");
         onadded(res.song.id, res.existing);
       }
@@ -53,7 +77,8 @@
     try {
       uploadProgress = 0;
       const ext = blob.type.includes("mp4") ? "m4a" : blob.type.includes("ogg") ? "ogg" : "webm";
-      const res = await api.upload(blob, { kind: "mic", title, filename: `rekaman.${ext}` }, (f) => (uploadProgress = f));
+      const res = await api.upload(blob, { kind: "mic", title, filename: `rekaman.${ext}`, separate: autoSeparate.on }, (f) => (uploadProgress = f));
+      warn(res.warning);
       onadded(res.song.id, res.existing);
     } catch (err) {
       fail(err);
@@ -80,10 +105,10 @@
 
   {#if mode === "url"}
     <form class="row" onsubmit={submitUrl}>
-      <input class="grow" type="url" inputmode="url" placeholder="Tempel tautan YouTube, SoundCloud, TikTok, dan lainnya" bind:value={url} disabled={busy} required />
+      <input class="grow" type="text" inputmode="url" placeholder="Tempel tautan YouTube, SoundCloud, TikTok, dan lainnya (bisa banyak sekaligus)" bind:value={url} {onpaste} disabled={busy} required />
       <button class="primary" disabled={busy || !url.trim()}>{busy ? "Mengambil info..." : "Cari chord"}</button>
     </form>
-    <p class="muted small hint">Audio diambil dengan yt-dlp untuk dipelajari sendiri. Playlist dan siaran langsung tidak didukung.</p>
+    <p class="muted small hint">Audio diambil dengan yt-dlp untuk dipelajari sendiri. Playlist dan siaran langsung tidak didukung. Tempel banyak tautan sekaligus untuk membuat sesi.</p>
   {:else if mode === "file"}
     <div
       class="drop"
@@ -104,6 +129,11 @@
     <Recorder onrecorded={uploadRecording} disabled={busy} />
   {/if}
 
+  <label class="row small auto">
+    <input type="checkbox" checked={autoSeparate.on} onchange={(e) => setAutoSeparate(e.currentTarget.checked)} />
+    Pisahkan vokal & instrumen otomatis
+  </label>
+
   {#if uploadProgress !== null}
     <div class="bar" aria-label="Kemajuan unggah"><i style="width:{Math.round(uploadProgress * 100)}%"></i></div>
   {/if}
@@ -121,6 +151,10 @@
   }
   .tabs button {
     padding: 0.3em 0.9em;
+  }
+  .auto {
+    gap: 0.4rem;
+    color: var(--muted);
   }
   .hint.setlist {
     color: var(--accent);

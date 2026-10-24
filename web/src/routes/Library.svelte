@@ -1,5 +1,6 @@
 <script lang="ts">
   import AddSong from "../components/AddSong.svelte";
+  import BulkAdd from "../components/BulkAdd.svelte";
   import SongPicker from "../components/SongPicker.svelte";
   import { api, onServerEvent, type Job, type Setlist, type Song } from "../lib/api";
   import { clock, jobLabel } from "../lib/i18n/id";
@@ -84,6 +85,15 @@
 
   let shareMenu = $state(false);
 
+  // Bulk add: a new session (target null) or more links for the open setlist.
+  let bulk = $state<{ target: Setlist | null; text: string } | null>(null);
+  const openBulk = (text = "") => (bulk = { target: setlistId ? (setlists.find((l) => l.id === setlistId) ?? null) : null, text });
+  async function bulkDone(id: number) {
+    setlists = (await api.setlists()).setlists;
+    setlistId = id;
+    refreshSoon(0);
+  }
+
   // "+ setlist" on a library row: a small menu of setlists.
   let rowMenu = $state<string | null>(null);
   async function addRowTo(songId: string, value: string) {
@@ -154,7 +164,7 @@
   const active = (j?: Job) => j && (j.state === "queued" || j.state === "running");
 </script>
 
-<AddSong {onadded} hint={setlistId ? `Lagu yang ditambahkan di sini langsung masuk ke setlist "${setlistName()}".` : ""} />
+<AddSong {onadded} onbulk={openBulk} hint={setlistId ? `Lagu yang ditambahkan di sini langsung masuk ke setlist "${setlistName()}".` : ""} />
 
 <div class="filters row wrap">
   <select bind:value={setlistId} aria-label="Pustaka atau setlist">
@@ -162,7 +172,8 @@
     {#each setlists as l (l.id)}<option value={l.id}>Setlist: {l.name} ({l.count})</option>{/each}
   </select>
   {#if setlistId}
-    <button class="small primary" onclick={() => (picking = true)}>Tambah dari pustaka</button>
+    <button class="small primary" onclick={() => openBulk()}>Tempel banyak tautan</button>
+    <button class="small" onclick={() => (picking = true)}>Tambah dari pustaka</button>
     <span class="menu-wrap">
       <button class="small" class:on={shareMenu} onclick={() => (shareMenu = !shareMenu)} aria-haspopup="menu" aria-expanded={shareMenu}>Bagikan dengan audio</button>
       {#if shareMenu}
@@ -185,7 +196,8 @@
     <button class="small" onclick={renameSetlist}>Ganti nama</button>
     <button class="small danger" onclick={deleteSetlist}>Hapus setlist</button>
   {:else}
-    <button class="small" onclick={newSetlist}>Setlist baru</button>
+    <button class="small primary" onclick={() => (bulk = { target: null, text: "" })} title="Buat sesi baru dan tempel semua tautan YouTube sekaligus">Sesi baru</button>
+    <button class="small" onclick={newSetlist}>Setlist kosong</button>
   {/if}
 </div>
 
@@ -262,6 +274,10 @@
     </li>
   {/each}
 </ul>
+
+{#if bulk}
+  <BulkAdd setlists={setlists} target={bulk.target} initialText={bulk.text} ondone={bulkDone} onclose={() => (bulk = null)} />
+{/if}
 
 {#if picking}
   <SongPicker selected={songs.map((s) => s.id)} onsave={savePicked} onclose={() => (picking = false)} />

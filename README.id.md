@@ -43,6 +43,9 @@ tanpa Python saat dijalankan. Antarmukanya berbahasa Indonesia.
 - **Koreksi hasil mesin.** Ketuk chord, pilih salah satu alternatif dari pengenal atau chord
   lain. Koreksi tetap ada walau lagu dianalisis ulang.
 - **Pustaka.** Cari, label, favorit, setlist; ekspor ke ChordPro, teks, atau PDF.
+- **Satu sesi sekaligus.** "Sesi baru": tempel semua tautan ibadah (boleh bercampur teks), jadilah
+  setlist bernama seperti `Sesi 1 24/10/2026` sesuai urutan tempel; tiap lagu diunduh, dibuatkan
+  chord, dan bila kotak "Pisahkan otomatis" dicentang, dipisahkan stemnya. Unduhan gagal bisa diulang.
 - **Dari HP.** Mode HTTPS di Wi-Fi rumah (harus diaktifkan dulu) dengan pemasangan lewat kode QR.
 - **Bagikan setlist.** Satu halaman web mandiri per setlist (chord saja, tanpa audio): kirim lewat
   chat atau unggah ke GitHub Pages. Semua orang membukanya di HP masing-masing, memilih transpose

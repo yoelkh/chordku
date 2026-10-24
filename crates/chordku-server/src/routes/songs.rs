@@ -74,6 +74,38 @@ pub async fn get(State(st): State<AppState>, Path(id): Path<String>) -> ApiResul
 #[derive(Deserialize)]
 pub struct UrlBody {
     url: String,
+    /// Separate vocals and instruments once the song is in (the "otomatis" checkbox).
+    #[serde(default)]
+    separate: bool,
+}
+
+/// Downloads running at once. A pasted list of twenty links must not open twenty yt-dlp
+/// processes against YouTube (rate limits) and the disk; the rest wait their turn.
+fn download_slots() -> &'static tokio::sync::Semaphore {
+    static SLOTS: std::sync::OnceLock<tokio::sync::Semaphore> = std::sync::OnceLock::new();
+    SLOTS.get_or_init(|| tokio::sync::Semaphore::new(3))
+}
+
+/// Queue a separation for a song that has its audio but not yet its four stems. Returns why
+/// not, for the client to show once.
+fn queue_separation(st: &AppState, song_id: &str) -> Option<String> {
+    if crate::models::group_dir(&st.cfg, "stems").is_none() {
+        return Some("Model pemisah stem belum diunduh (Pengaturan > Model), jadi lagu tidak dipisahkan.".into());
+    }
+    let stems = st.db.stems(song_id).unwrap_or_default();
+    if ["vocals", "drums", "bass", "other"].iter().all(|n| stems.iter().any(|s| s.name == *n)) {
+        return None; // already separated
+    }
+    if st.db.active_job_for(song_id, "separate").ok().flatten().is_some() {
+        return None;
+    }
+    match st.jobs.create(song_id, "separate") {
+        Ok(job) => {
+            st.jobs.enqueue(&job);
+            None
+        }
+        Err(e) => Some(format!("{e:#}")),
+    }
 }
 
 pub async fn create_from_url(State(st): State<AppState>, Json(body): Json<UrlBody>) -> ApiResult<Json<Value>> {
@@ -98,8 +130,28 @@ pub async fn create_from_url(State(st): State<AppState>, Json(body): Json<UrlBod
         )));
     }
     if let Some(existing) = st.db.find_by_media(&meta.extractor, &meta.id)? {
-        return Ok(Json(json!({ "existing": true, "song": st.db.song(&existing)? })));
+        let song = st.db.song(&existing)?;
+        // Its download failed earlier (YouTube refusals happen): try again now.
+        if song.as_ref().is_some_and(|s| s.source_file.is_none()) && st.db.active_job_for(&existing, "analyze")?.is_none() {
+            let job = st.jobs.create(&existing, "analyze")?;
+            let separate_ok = body.separate && crate::models::group_dir(&st.cfg, "stems").is_some();
+            spawn_download(&st, existing.clone(), url, yt, job.clone(), separate_ok);
+            return Ok(Json(json!({ "existing": true, "retried": true, "song": song, "job": job })));
+        }
+        // A known song asked to be separated: do it now if its audio is on disk.
+        let warning = match &song {
+            Some(s) if body.separate && s.source_file.is_some() => queue_separation(&st, &existing),
+            _ => None,
+        };
+        return Ok(Json(json!({ "existing": true, "song": song, "warning": warning })));
     }
+    // Said up front, so a pasted list does not report the same missing model twenty times late.
+    let warning = if body.separate && crate::models::group_dir(&st.cfg, "stems").is_none() {
+        Some("Model pemisah stem belum diunduh (Pengaturan > Model), jadi lagu tidak dipisahkan.".to_owned())
+    } else {
+        None
+    };
+    let then_separate = body.separate && warning.is_none();
 
     let id = ulid::Ulid::new().to_string();
     st.db.insert_song(
@@ -117,13 +169,21 @@ pub async fn create_from_url(State(st): State<AppState>, Json(body): Json<UrlBod
     )?;
     let job = st.jobs.create(&id, "analyze")?;
 
-    // Download on the async runtime, then hand over to the inference thread.
-    let (state, song_id, job_clone) = (st.clone(), id.clone(), job.clone());
+    spawn_download(&st, id.clone(), url, yt, job.clone(), then_separate);
+
+    Ok(Json(json!({ "existing": false, "song": st.db.song(&id)?, "job": job, "warning": warning })))
+}
+
+/// Download on the async runtime (at most `download_slots` at a time), then hand over to the
+/// inference thread; with `then_separate` the separation is queued right behind the analysis.
+fn spawn_download(st: &AppState, id: String, url: url::Url, yt: YtDlp, job: crate::db::Job, then_separate: bool) {
+    let (state, song_id, job_clone) = (st.clone(), id, job);
     tokio::spawn(async move {
         let jobs = state.jobs.clone();
         let result: anyhow::Result<()> = async {
             let dir = state.cfg.song_dir(&song_id);
             tokio::fs::create_dir_all(&dir).await?;
+            let _slot = download_slots().acquire().await?;
             jobs.report(&job_clone.id, "running", "download", 0.0, None);
             let mut last = -1.0f64;
             let file = yt
@@ -143,6 +203,12 @@ pub async fn create_from_url(State(st): State<AppState>, Json(body): Json<UrlBod
             state.db.set_song_source(&song_id, &name, &hash, 0)?;
             jobs.report(&job_clone.id, "queued", "", 0.0, None);
             jobs.enqueue(&job_clone);
+            // The separation waits in the slow lane, so the chart still comes first.
+            if then_separate {
+                if let Some(why) = queue_separation(&state, &song_id) {
+                    tracing::warn!(song_id, "pemisahan otomatis tidak dijalankan: {why}");
+                }
+            }
             Ok(())
         }
         .await;
@@ -151,7 +217,6 @@ pub async fn create_from_url(State(st): State<AppState>, Json(body): Json<UrlBod
         }
     });
 
-    Ok(Json(json!({ "existing": false, "song": st.db.song(&id)?, "job": job })))
 }
 
 /// Multipart upload: a `file` part plus optional `title`, `artist` and `kind` (`file` | `mic`).
@@ -195,9 +260,11 @@ pub async fn upload(State(st): State<AppState>, mut multipart: Multipart) -> Api
     }
 
     let hash = hasher.finalize().to_hex().to_string();
+    let separate = fields.get("separate").map(String::as_str) == Some("1");
     if let Some(existing) = st.db.find_by_hash(&hash)? {
         let _ = tokio::fs::remove_file(&tmp).await;
-        return Ok(Json(json!({ "existing": true, "song": st.db.song(&existing)? })));
+        let warning = if separate { queue_separation(&st, &existing) } else { None };
+        return Ok(Json(json!({ "existing": true, "song": st.db.song(&existing)?, "warning": warning })));
     }
 
     // Never trust the client's file name for a path: keep only a known-safe extension.
@@ -227,7 +294,8 @@ pub async fn upload(State(st): State<AppState>, mut multipart: Multipart) -> Api
     st.db.set_song_source(&id, &source, &hash, 0)?;
     let job = st.jobs.create(&id, "analyze")?;
     st.jobs.enqueue(&job);
-    Ok(Json(json!({ "existing": false, "song": st.db.song(&id)?, "job": job })))
+    let warning = if separate { queue_separation(&st, &id) } else { None };
+    Ok(Json(json!({ "existing": false, "song": st.db.song(&id)?, "job": job, "warning": warning })))
 }
 
 #[derive(Deserialize)]
@@ -323,6 +391,19 @@ fn start_job(st: &AppState, id: &str, kind: &str) -> ApiResult<Json<Value>> {
 }
 
 pub async fn reanalyze(State(st): State<AppState>, Path(id): Path<String>) -> ApiResult<Json<Value>> {
+    check_id(&id)?;
+    // "Coba lagi" after a failed download: fetch the audio again rather than refuse.
+    if let Some(song) = st.db.song(&id)? {
+        if song.source_file.is_none() && st.db.active_job_for(&id, "analyze")?.is_none() {
+            if let Some(src) = song.src_url.as_deref() {
+                let url = ytdlp::validate_url(src).await.map_err(|e| ApiError::bad_request(e.to_string()))?;
+                let yt = YtDlp::locate(&st.cfg).await.ok_or_else(|| ApiError::bad_request("yt-dlp tidak bisa dijalankan"))?;
+                let job = st.jobs.create(&id, "analyze")?;
+                spawn_download(&st, id.clone(), url, yt, job.clone(), false);
+                return Ok(Json(json!({ "job": job })));
+            }
+        }
+    }
     start_job(&st, &id, "analyze")
 }
 

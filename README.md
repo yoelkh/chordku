@@ -41,6 +41,9 @@ no Python at runtime. The UI is in Indonesian.
 - **Fix what the machine got wrong.** Tap a chord, pick one of the recogniser's alternatives or
   any other chord. Corrections survive a re-analysis.
 - **Library.** Search, tags, favourites, setlists; export to ChordPro, plain text or PDF.
+- **A whole session at once.** "Sesi baru": paste every link of the service (in any messy text),
+  get a setlist named like `Sesi 1 24/10/2026` in paste order, with each song downloaded, charted
+  and, with the "separate automatically" box ticked, split into stems. Failed downloads retry.
 - **From your phone.** Opt-in HTTPS mode on your Wi-Fi with QR pairing.
 - **Share a setlist.** One self-contained web page per setlist (charts only, no audio): send it over
   chat or put it on GitHub Pages. Everyone opens it on their own phone, picks their own transpose
